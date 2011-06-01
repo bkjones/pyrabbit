@@ -1,5 +1,7 @@
 .tox
 .idea
+.coverage
 *.swp
 *.pyc
 *egg-info*
+
