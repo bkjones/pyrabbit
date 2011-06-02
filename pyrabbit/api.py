@@ -30,7 +30,7 @@ class APIError(Exception):
     pass
 
 class HTTPClient(object):
-    urls = {'overview': 'api/overview', 
+    urls = {'overview': 'api/overview',
             'all_queues': 'api/queues',
             'all_exchanges': 'api/exchanges',
             'all_channels': 'api/channels',
@@ -136,6 +136,19 @@ class HTTPClient(object):
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         exchanges = self.decode_json_content(content)
         return exchanges
+
+    def get_connections(self):
+        path = HTTPClient.urls['all_connections']
+        resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
+        conns = self.decode_json_content(content)
+        return conns
+
+    def get_channels(self):
+        path = HTTPClient.urls['all_channels']
+        resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
+        chans = self.decode_json_content(content)
+        return chans
+
             
 
 class Server(object):

@@ -88,48 +88,56 @@ class TestHTTPClient(unittest.TestCase):
         xchs = self.c.get_exchanges('testvhost')
         self.assertIsInstance(xchs, list)
 
+    def test_get_all_connections(self):
+        conns = self.c.get_connections()
+        self.assertIsInstance(conns, list)
+
+    def test_get_all_channels(self):
+        chans = self.c.get_channels()
+        self.assertIsInstance(chans, list)
 
 class TestServer(unittest.TestCase):
+    def setUp(self):
+        """
+        Since these are unit tests, we isolate the Server class by mocking
+        out pyrabbit.api.HTTPClient and all of the methods needed for testing.
+
+        pyrabbit.api.HTTPClient is a mock *class*, which gets instantiated by
+        Server as self.client, but for convenience I've provided the
+        instantiated object as self.http for the tests to use, to eliminate
+        long calls like:
+
+        pyrabbit.api.HTTPClient.return_value.get_overview.return_value = blah
+
+        ...which becomes...
+
+        self.http.get_overview.return_value = blah
+
+        """
+        pyrabbit.api.HTTPClient = mock.Mock(spec=pyrabbit.api.HTTPClient)
+        pyrabbit.api.HTTPClient.return_value.get_overview.return_value = test_overview_dict
+        self.http = pyrabbit.api.HTTPClient.return_value
+        self.srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
+
     def test_server_init_200(self):
-        with mock.patch('pyrabbit.api.HTTPClient', spec=True) as httpmock:
-            inst = httpmock.return_value
-            inst.get_overview.return_value = test_overview_dict
-
-            srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
-
-            self.assertIsInstance(srvr, pyrabbit.api.Server)
-            self.assertTrue(all(x in srvr.__dict__.values() for x in \
-                                        test_overview_dict.values()))
-            self.assertEqual(srvr.host, 'localhost:55672')
+        self.assertIsInstance(self.srvr, pyrabbit.api.Server)
+        self.assertTrue(all(x in self.srvr.__dict__.values() for x in \
+                                    test_overview_dict.values()))
+        self.assertEqual(self.srvr.host, 'localhost:55672')
 
     def test_server_is_alive_default_vhost(self):
-        with mock.patch('pyrabbit.api.HTTPClient', spec=True) as httpmock:
-            httpmock.return_value.get_overview.return_value = test_overview_dict
-            httpmock.return_value.is_alive.return_value = True
-
-            srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
-
-            self.assertTrue(srvr.is_alive())
+        self.http.is_alive.return_value = True
+        self.assertTrue(self.srvr.is_alive())
 
     def test_get_vhosts_200(self):
-        with mock.patch('pyrabbit.api.HTTPClient', spec=True) as httpmock:
-            httpmock.return_value.get_overview.return_value = test_overview_dict
-            httpmock.return_value.get_all_vhosts.return_value = test_vhosts_dict
-
-            srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
-            vhosts = srvr.get_all_vhosts()
-
-            self.assertIsInstance(vhosts, list)
+        self.http.get_all_vhosts.return_value = test_vhosts_dict
+        vhosts = self.srvr.get_all_vhosts()
+        self.assertIsInstance(vhosts, list)
 
     def test_get_all_queues(self):
-        with mock.patch('pyrabbit.api.HTTPClient', spec=True) as httpmock:
-            httpmock.return_value.get_overview.return_value = test_overview_dict
-            httpmock.return_value.get_queues.return_value = test_q_all
-
-            srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
-            queues = srvr.get_queues()
-
-            self.assertIsInstance(queues, list)
+        self.http.get_queues.return_value = test_q_all
+        queues = self.srvr.get_queues()
+        self.assertIsInstance(queues, list)
 
 
 class TestExchange(unittest.TestCase):
