@@ -1,3 +1,4 @@
+from collections import namedtuple
 import json
 
 try:
@@ -88,6 +89,11 @@ class TestHTTPClient(unittest.TestCase):
         xchs = self.c.get_exchanges('testvhost')
         self.assertIsInstance(xchs, list)
 
+    def test_get_exchange_by_name(self):
+        xch = self.c.get_exchange('%2F', 'test')
+        self.assertIsInstance(xch, dict)
+        self.assertEqual(xch['name'], 'test')
+
     def test_get_all_connections(self):
         conns = self.c.get_connections()
         self.assertIsInstance(conns, list)
@@ -95,6 +101,10 @@ class TestHTTPClient(unittest.TestCase):
     def test_get_all_channels(self):
         chans = self.c.get_channels()
         self.assertIsInstance(chans, list)
+
+    def test_purge_queue(self):
+        status = self.c.purge_queue('%2F', 'testq')
+        self.assertTrue(status)
 
 class TestServer(unittest.TestCase):
     def setUp(self):
@@ -114,15 +124,13 @@ class TestServer(unittest.TestCase):
         self.http.get_overview.return_value = blah
 
         """
-        pyrabbit.api.HTTPClient = mock.Mock(spec=pyrabbit.api.HTTPClient)
+        pyrabbit.api.HTTPClient = mock.Mock(spec_set=pyrabbit.api.HTTPClient)
         pyrabbit.api.HTTPClient.return_value.get_overview.return_value = test_overview_dict
         self.http = pyrabbit.api.HTTPClient.return_value
         self.srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
 
     def test_server_init_200(self):
         self.assertIsInstance(self.srvr, pyrabbit.api.Server)
-        self.assertTrue(all(x in self.srvr.__dict__.values() for x in \
-                                    test_overview_dict.values()))
         self.assertEqual(self.srvr.host, 'localhost:55672')
 
     def test_server_is_alive_default_vhost(self):
@@ -138,6 +146,35 @@ class TestServer(unittest.TestCase):
         self.http.get_queues.return_value = test_q_all
         queues = self.srvr.get_queues()
         self.assertIsInstance(queues, list)
+
+    def test_purge_queues(self):
+        self.http.purge_queue.return_value = True
+        qu = namedtuple("Queue", ['name', 'vhost'])
+        q1 = qu(name='q1', vhost='%2F')
+        q2 = qu(name='q2', vhost='%2F')
+        self.assertTrue(self.srvr.purge_queues([q1, q2]))
+
+    def test_get_all_exchanges(self):
+        xchs = [{'name': 'foo', 'vhost': '/', 'type': 'direct',
+                 'durable': False, 'auto_delete': False, 'internal': False,
+                 'arguments': {}},
+
+                {'name': 'bar', 'vhost': '/', 'type': 'direct',
+                 'durable': False, 'auto_delete': False, 'internal': False,
+                 'arguments': {}},]
+        self.http.get_exchanges.return_value = xchs
+        xlist = self.srvr.get_exchanges()
+        self.assertIsInstance(xlist, list)
+        self.assertEqual(len(xlist), 2)
+
+    def test_get_named_exchange(self):
+        xch = {'name': 'foo', 'vhost': '/', 'type': 'direct',
+                 'durable': False, 'auto_delete': False, 'internal': False,
+                 'arguments': {}}
+        self.http.get_exchange.return_value = xch
+        myexch = self.srvr.get_exchange('%2F', 'foo')
+        self.assertEqual(myexch.name, 'foo')
+
 
 
 class TestExchange(unittest.TestCase):

@@ -9,6 +9,35 @@ except ImportError:
     # Python 2.7
     from urlparse import urlunparse
 
+vhost = namedtuple('VHost', ['name'])
+
+exch = namedtuple('Exchange', ['name', 'vhost', 'type',
+                               'durable', 'auto_delete', 'internal',
+                               'arguments'])
+
+conn = namedtuple("Connection", ['frame_max', 'send_pend',
+                                 'peer_cert_validity',
+                                 'client_properties', 'ssl_protocol',
+                                 'pid', 'channels', 'auth_mechanism',
+                                 'peer_cert_issuer',
+                                 'peer_cert_subject', 'peer_address',
+                                 'port', 'send_oct_details',
+                                 'recv_cnt', 'send_oct', 'protocol',
+                                 'recv_oct_details', 'state',
+                                 'ssl_cipher', 'node', 'timeout',
+                                 'peer_port', 'ssl', 'vhost', 'user',
+                                 'address', 'name', 'ssl_hash',
+                                 'recv_oct', 'send_cnt',
+                                 'ssl_key_exchange'])
+
+queue = namedtuple('Queue', ['memory', 'messages', 'consumer_details',
+                             'idle_since', 'exclusive_consumer_pid',
+                             'exclusive_consumer_tag', 'messages_ready',
+                             'messages_unacknowledged', 'consumers',
+                             'backing_queue_status', 'name',
+                             'vhost', 'durable', 'auto_delete',
+                             'owner_pid', 'arguments', 'pid', 'node'])
+
 class HTTPError(Exception):
     """
     An error response from the API server. This should be an
@@ -30,21 +59,25 @@ class APIError(Exception):
     pass
 
 class HTTPClient(object):
-    urls = {'overview': 'api/overview',
-            'all_queues': 'api/queues',
-            'all_exchanges': 'api/exchanges',
-            'all_channels': 'api/channels',
-            'all_connections': 'api/connections',
-            'all_nodes': 'api/nodes',
-            'all_vhosts': 'api/vhosts',
-            'queues_by_vhost': 'api/queues/%s',
-            'exchanges_by_vhost': 'api/exchanges/%s',
-            'live_test': 'api/aliveness-test/%s'}
+    urls = {'overview': 'overview',
+            'all_queues': 'queues',
+            'all_exchanges': 'exchanges',
+            'all_channels': 'channels',
+            'all_connections': 'connections',
+            'all_nodes': 'nodes',
+            'all_vhosts': 'vhosts',
+            'queues_by_vhost': 'queues/%s',
+            'queues_by_name': 'queues/%s/%s',
+            'exchanges_by_vhost': 'exchanges/%s',
+            'exchange_by_name': 'exchanges/%s/%s',
+            'live_test': 'aliveness-test/%s',
+            'purge_queue': 'queues/%s/%s/contents',
+            'connections_by_name': 'connections/%s'}
 
     def __init__(self, server, uname, passwd):
         self.client = httplib2.Http()
         self.client.add_credentials(uname, passwd)
-        self.base_url = 'http://%s' % server
+        self.base_url = 'http://%s/api' % server
 
     def decode_json_content(self, content):
         str_ct = content.decode('utf8')
@@ -103,14 +136,12 @@ class HTTPClient(object):
         Get a list of all vhosts a broker knows about.
 
         """
-        vhost = namedtuple('VHost', ['name'])
         resp, content = self.do_call(os.path.join(self.base_url,
                                             HTTPClient.urls['all_vhosts']),
                                             'GET')
 
         vhost_data = self.decode_json_content(content)
-        vhost_list = [vhost(**i) for i in vhost_data]
-        return vhost_list
+        return vhost_data
 
     def get_queues(self, vhost=None):
         """
@@ -127,6 +158,28 @@ class HTTPClient(object):
         queues = self.decode_json_content(content)
         return queues
 
+    def get_queue(self, vhost, name):
+        path = HTTPClient.urls['queues_by_name'] % (vhost, name)
+        resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
+        queue = self.decode_json_content(content)
+        return queue
+        
+
+    def purge_queue(self, vhost, name):
+        """
+        The queues parameter should be a list of one or more queue objects.
+
+        """
+        path = HTTPClient.urls['purge_queue'] % (vhost, name)
+        try:
+            self.do_call(os.path.join(self.base_url, path), 'DELETE')
+        except HTTPError as e:
+            if e.status == 204:
+                return True
+            else:
+                raise
+        return True
+
     def get_exchanges(self, vhost=None):
         if vhost:
             path = HTTPClient.urls['exchanges_by_vhost'] % vhost
@@ -137,8 +190,21 @@ class HTTPClient(object):
         exchanges = self.decode_json_content(content)
         return exchanges
 
-    def get_connections(self):
-        path = HTTPClient.urls['all_connections']
+    def get_exchange(self, vhost, name):
+        """
+        Gets a single exchange which requires a vhost and name.
+
+        """
+        path = HTTPClient.urls['exchange_by_name'] % (vhost, name)
+        resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
+        exch = self.decode_json_content(content)
+        return exch
+
+    def get_connections(self, name=None):
+        if name:
+            path = HTTPClient.urls['connections_by_name']
+        else:
+            path = HTTPClient.urls['all_connections']
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         conns = self.decode_json_content(content)
         return conns
@@ -162,39 +228,30 @@ class Server(object):
         """
         Populates server attributes using passed-in parameters and 
         the HTTP API's 'overview' information. It also instantiates
-        an httplib2 HTTP client and adds credentials based on 
-        passed-in initialization params. 
+        an httplib2 HTTP client and adds credentials
 
         """
         self.host = host
         self.client = HTTPClient(host, user, passwd)
 
-        # populate Server instance attrs from 'overview' data.
         overview = self.client.get_overview()
+        self.overview = namedtuple('Overview', list(overview.keys()))(**overview)
         
-        self.node = overview['node']
-        self.mgr_version = overview['management_version']
-
-        # returns a dict
-        self.queue_totals = overview['queue_totals']
-
-        # returns a list of dicts
-        self.listeners = overview['listeners']
-
-        self.stats_db_node = overview['statistics_db_node']
-        self.message_stats = overview['message_stats']
-        self.stats_level = overview['statistics_level']
-
         return
 
     def get_all_vhosts(self):
         """
-        Returns a list of dicts resulting from a json.loads of the
-        server response without alteration.
+        Returns a list of namedtuples that act and are in all ways
+        equivalent to instances of type VHost. Since all operations on
+        these objects are done via the API provided by this Server class,
+        VHosts are just bags of vhost attributes that are addressable using
+        cleaner, more meaningful syntax than objects
+        (e.g. 'v.name' instead of 'v[0]')
 
         """
         vhosts = self.client.get_all_vhosts()
-        return vhosts
+        vhost_list = [vhost(**i) for i in vhosts]
+        return vhost_list
 
     def get_queues(self, vhost=None):
         """
@@ -203,7 +260,59 @@ class Server(object):
 
         """
         queues = self.client.get_queues(vhost)
-        return queues
+
+        # initialize a queue 'object' w/ defaults.
+        prototype_queue = queue(*[None for i in queue._fields])
+        queue_list = [prototype_queue._replace(**i) for i in queues]
+        return queue_list
+
+    def get_queue(self, vhost, name):
+        """
+        Get a single queue, which requires both vhost and name.
+
+        """
+        q = self.client.get_queue(vhost, name)
+        queue_out = queue(**q)
+        return queue_out
+
+    def purge_queues(self, queues):
+        """
+        The queues parameter should be a list of one or more queue objects.
+
+        """
+        for q in queues:
+            vhost = q.vhost
+            vhost = '%2F' if vhost =='/' else vhost
+            name = q.name
+            self.client.purge_queue(vhost, name)
+        return True
+
+    def get_connections(self, name=None):
+        """
+        Returns a list of one or more Connection namedtuple objects
+
+        """
+        connections = self.client.get_connections(name)
+        connlist = [conn(**i) for i in connections]
+        return connlist
+
+    def get_exchanges(self, vhost=None):
+        """
+        Returns a list of Exchange namedtuple objects.
+
+        """
+        xchs = self.client.get_exchanges(vhost)
+        xlist = [exch(**i) for i in xchs]
+        return xlist
+
+    def get_exchange(self, vhost, xname):
+        """
+        Returns a single exchange namedtuple subclass.
+
+        """
+        xch = self.client.get_exchange(vhost, xname)
+        out_exch = exch(**xch)
+        return out_exch
 
     def is_alive(self, vhost='%2F'):
         return self.client.is_alive(vhost)
