@@ -11,9 +11,15 @@ except ImportError:
 
 vhost = namedtuple('VHost', ['name'])
 
+# initialize a vhost 'object' w/ defaults.
+prototype_vhost = vhost(*[None for i in vhost._fields])
+
 exch = namedtuple('Exchange', ['name', 'vhost', 'type',
                                'durable', 'auto_delete', 'internal',
                                'arguments'])
+
+# initialize an exch 'object' w/ defaults.
+prototype_exch = exch(*[None for i in exch._fields])
 
 conn = namedtuple("Connection", ['frame_max', 'send_pend',
                                  'peer_cert_validity',
@@ -30,6 +36,9 @@ conn = namedtuple("Connection", ['frame_max', 'send_pend',
                                  'recv_oct', 'send_cnt',
                                  'ssl_key_exchange'])
 
+# initialize a conn 'object' w/ defaults.
+prototype_conn = conn(*[None for i in conn._fields])
+
 queue = namedtuple('Queue', ['memory', 'messages', 'consumer_details',
                              'idle_since', 'exclusive_consumer_pid',
                              'exclusive_consumer_tag', 'messages_ready',
@@ -37,6 +46,9 @@ queue = namedtuple('Queue', ['memory', 'messages', 'consumer_details',
                              'backing_queue_status', 'name',
                              'vhost', 'durable', 'auto_delete',
                              'owner_pid', 'arguments', 'pid', 'node'])
+
+# initialize a queue 'object' w/ defaults.
+prototype_queue = queue(*[None for i in queue._fields])
 
 class HTTPError(Exception):
     """
@@ -235,8 +247,12 @@ class Server(object):
         self.client = HTTPClient(host, user, passwd)
 
         overview = self.client.get_overview()
+
+        #TODO blech. This is basically an object whose members are dynamic, so
+        # self.overview.foo could work in some places and not others, depending
+        # on perms, configuration, activity (or lack thereof), etc.
         self.overview = namedtuple('Overview', list(overview.keys()))(**overview)
-        
+
         return
 
     def get_all_vhosts(self):
@@ -250,7 +266,7 @@ class Server(object):
 
         """
         vhosts = self.client.get_all_vhosts()
-        vhost_list = [vhost(**i) for i in vhosts]
+        vhost_list = [prototype_vhost._replace(**i) for i in vhosts]
         return vhost_list
 
     def get_queues(self, vhost=None):
@@ -260,9 +276,6 @@ class Server(object):
 
         """
         queues = self.client.get_queues(vhost)
-
-        # initialize a queue 'object' w/ defaults.
-        prototype_queue = queue(*[None for i in queue._fields])
         queue_list = [prototype_queue._replace(**i) for i in queues]
         return queue_list
 
