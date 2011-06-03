@@ -11,6 +11,7 @@ except ImportError:
 import sys
 sys.path.append('..')
 import pyrabbit
+from pyrabbit import http
 import mock
 
 # used by Server init
@@ -33,11 +34,11 @@ class TestHTTPClient(unittest.TestCase):
 
     """
     def setUp(self):
-        self.c = pyrabbit.api.HTTPClient('localhost:55672', 'guest', 'guest')
+        self.c = http.HTTPClient('localhost:55672', 'guest', 'guest')
 
     def test_client_init(self):
-        c = pyrabbit.api.HTTPClient('localhost:55672', 'guest', 'guest')
-        self.assertIsInstance(c, pyrabbit.api.HTTPClient)
+        c = http.HTTPClient('localhost:55672', 'guest', 'guest')
+        self.assertIsInstance(c, http.HTTPClient)
 
     def test_is_alive(self):
         self.assertTrue(self.c.is_alive())
@@ -49,7 +50,7 @@ class TestHTTPClient(unittest.TestCase):
         doesn't exist.
 
         """
-        with self.assertRaises(pyrabbit.api.APIError):
+        with self.assertRaises(http.APIError):
             self.c.is_alive('somenonexistentvhost')
 
     def test_overview_500(self):
@@ -58,9 +59,9 @@ class TestHTTPClient(unittest.TestCase):
         raised.
 
         """
-        c = pyrabbit.api.HTTPClient('webstatuscodes.appspot.com/500',
+        c = http.HTTPClient('webstatuscodes.appspot.com/500',
                                     'guest', 'guest')
-        with self.assertRaises(pyrabbit.api.HTTPError) as ctx:
+        with self.assertRaises(http.HTTPError) as ctx:
             c.get_overview()
 
         self.assertEqual(ctx.exception.status, 500)
@@ -124,9 +125,9 @@ class TestServer(unittest.TestCase):
         self.http.get_overview.return_value = blah
 
         """
-        pyrabbit.api.HTTPClient = mock.Mock(spec_set=pyrabbit.api.HTTPClient)
-        pyrabbit.api.HTTPClient.return_value.get_overview.return_value = test_overview_dict
-        self.http = pyrabbit.api.HTTPClient.return_value
+        http.HTTPClient = mock.Mock(spec_set=http.HTTPClient)
+        http.HTTPClient.return_value.get_overview.return_value = test_overview_dict
+        self.http = http.HTTPClient.return_value
         self.srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
 
     def test_server_init_200(self):
@@ -174,19 +175,3 @@ class TestServer(unittest.TestCase):
         self.http.get_exchange.return_value = xch
         myexch = self.srvr.get_exchange('%2F', 'foo')
         self.assertEqual(myexch.name, 'foo')
-
-
-
-class TestExchange(unittest.TestCase):
-    def test_exch_init(self):
-        xch = pyrabbit.exchanges.Exchange('test')
-        self.assertIsInstance(xch, pyrabbit.exchanges.Exchange)
-        self.assertEqual(xch.name, 'test')
-    
-
-class TestQueue(unittest.TestCase):
-    def test_queue_init(self):
-        qu = pyrabbit.queues.Queue('testq')
-        self.assertIsInstance(qu, pyrabbit.queues.Queue)
-        self.assertEqual(qu.name, 'testq')
-
