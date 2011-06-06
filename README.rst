@@ -27,8 +27,8 @@ Here's a quick demo:
     >>> for q in srvr.get_queues():
     ...     '{0.name:<40s}{0.messages:>15d}'.format(q)
     ... 
-
-
+    
+    
     'amq.gen-1QXqTFany6PFsi2NSmv2qA==                      0'
     'amq.gen-KmfVj0FEIy9zBtuTtWo4Iw==                      0'
     'amq.gen-TMPMGWJgmaZtVnUa1CAavw==                      0'
@@ -39,11 +39,11 @@ Here's a quick demo:
     'jonesyTestQ                                           2'
     'publish                                               0'
     'testq                                                 0'
-
+    
     >>> testq = srvr.get_queue('%2F', 'jonesyTestQ')
     >>> testq
-
-
+    
+    
     Queue(memory=12744, messages=2, consumer_details=[], idle_since='2011-5-27
     14:26:25', exclusive_consumer_pid='', exclusive_consumer_tag='',
     messages_ready=2, messages_unacknowledged=0, consumers=0,
@@ -55,15 +55,15 @@ Here's a quick demo:
     'avg_ingress_rate': 0.0, 'ram_index_count': 0}, name='jonesyTestQ',
     vhost='/', durable=True, auto_delete=False, owner_pid='none', arguments={},
     pid='<rabbit@newhotness.3.12974.633>', node='rabbit@newhotness')
-
-
+    
+    
     >>> srvr.purge_queues([testq])  
     True
     >>> for q in srvr.get_queues():
     ...     '{0.name:<40s}{0.messages:>15d}'.format(q)
     ... 
-
-
+    
+    
     'amq.gen-1QXqTFany6PFsi2NSmv2qA==                      0'
     'amq.gen-KmfVj0FEIy9zBtuTtWo4Iw==                      0'
     'amq.gen-TMPMGWJgmaZtVnUa1CAavw==                      0'
