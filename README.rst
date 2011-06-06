@@ -15,7 +15,7 @@ py-amqplib.
 There's plenty to be done, so please do jump in, fork, send pull requests and
 issues, etc. 
 
-Here's a quick demo:
+Here's a quick demo::
 
     newhotness:pyrabbit bjones$ python3.2
     Python 3.2 (r32:88445, Mar 29 2011, 20:18:33) 
