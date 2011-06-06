@@ -151,7 +151,7 @@ class Server(object):
 
         """
         q = self.client.get_queue(vhost, name)
-        queue_out = queue(**q)
+        queue_out = prototype_queue._replace(**q)
         return queue_out
 
     def purge_queues(self, queues):
@@ -172,7 +172,7 @@ class Server(object):
 
         """
         connections = self.client.get_connections(name)
-        connlist = [conn(**i) for i in connections]
+        connlist = [prototype_conn._replace(**i) for i in connections]
         return connlist
 
     def get_exchanges(self, vhost=None):
@@ -181,7 +181,7 @@ class Server(object):
 
         """
         xchs = self.client.get_exchanges(vhost)
-        xlist = [exch(**i) for i in xchs]
+        xlist = [prototype_exch._replace(**i) for i in xchs]
         return xlist
 
     def get_exchange(self, vhost, xname):
@@ -190,7 +190,7 @@ class Server(object):
 
         """
         xch = self.client.get_exchange(vhost, xname)
-        out_exch = exch(**xch)
+        out_exch = prototype_exch._replace(**xch)
         return out_exch
 
     def is_alive(self, vhost='%2F'):
