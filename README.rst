@@ -21,7 +21,6 @@ Here's a quick demo:
     Python 3.2 (r32:88445, Mar 29 2011, 20:18:33) 
     [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
-
     >>> from pyrabbit import api
     >>> srvr = api.Server('localhost:55672', 'guest', 'guest')
     >>> for q in srvr.get_queues():
