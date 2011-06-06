@@ -8,12 +8,14 @@ version = ".".join(str(x) for x in pyrabbit.version)
 setup(name='pyrabbit',
       version=version,
       description="A Pythonic interface to the RabbitMQ Management HTTP API", 
+
       long_description="""\
 There's no way to easily write programs against RabbitMQs management API
 without resorting to some messy urllib boilerplate code involving HTTP 
 Basic authentication and parsing the JSON responses, etc. Pyrabbit 
 abstracts this away & provides an intuitive, easy way to work with the 
 data that lives inside of RabbitMQ, and manipulate the resources there.""",
+
       classifiers=[
           "Intended Audience :: Developers",
           "License :: OSI Approved :: MIT License",

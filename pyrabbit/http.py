@@ -1,3 +1,4 @@
+
 import httplib2
 import json
 import os
@@ -30,6 +31,8 @@ class HTTPClient(object):
             'all_connections': 'connections',
             'all_nodes': 'nodes',
             'all_vhosts': 'vhosts',
+            'all_users': 'users',
+            'whoami': 'whoami',
             'queues_by_vhost': 'queues/%s',
             'queues_by_name': 'queues/%s/%s',
             'exchanges_by_vhost': 'exchanges/%s',
@@ -81,6 +84,26 @@ class HTTPClient(object):
             return True
         else:
             return False
+
+    def get_whoami(self):
+        path = os.path.join(self.base_url, HTTPClient.urls['whoami'])
+        resp, content = self.do_call(path, 'GET')
+        whoami = self.decode_json_content(content)
+        return whoami
+
+    def get_users(self):
+        path = os.path.join(self.base_url, HTTPClient.urls['all_users'])
+
+        try:
+            resp, content = self.do_call(path, 'GET')
+        except HTTPError as e:
+            if e.status == 401:
+                raise APIError("Only admin can access user data")
+            else:
+                raise
+
+        users = self.decode_json_content(content)
+        return users
 
     def get_overview(self):
         """

@@ -1,5 +1,6 @@
 from collections import namedtuple
 from . import http
+import functools
 
 vhost = namedtuple('VHost', ['name'])
 
@@ -42,6 +43,21 @@ queue = namedtuple('Queue', ['memory', 'messages', 'consumer_details',
 # initialize a queue 'object' w/ defaults.
 prototype_queue = queue(*[None for i in queue._fields])
 
+user = namedtuple('User', ['name', 'password_hash', 'administrator'])
+prototype_user = user(*[None for i in user._fields])
+
+class PermissionError(Exception):
+    pass
+
+def needs_admin_privs(fun):
+    @functools.wraps(fun)
+    def wrapper(self, *args, **kwargs):
+        if self.is_admin or self.has_admin_rights:
+            fun(self, *args, **kwargs)
+        else:
+            raise PermissionError("Insufficient privs. User '%s'" % self.user)
+    return wrapper
+
 class Server(object):
     """
     Abstraction of the RabbitMQ Management HTTP API.
@@ -49,24 +65,61 @@ class Server(object):
     HTTP calls are delegated to the  HTTPClient class for ease of testing,
     cleanliness, separation of duty, flexibility, etc.
     """
+
     def __init__(self, host, user, passwd):
         """
         Populates server attributes using passed-in parameters and 
         the HTTP API's 'overview' information. It also instantiates
-        an httplib2 HTTP client and adds credentials
+        an httplib2 HTTP client and adds credentia    ls
 
         """
         self.host = host
-        self.client = http.HTTPClient(host, user, passwd)
+        self.user = user
+        self.passwd = passwd
+        self.client = http.HTTPClient(self.host, self.user, self.passwd)
 
-        overview = self.client.get_overview()
-
-        #TODO blech. This is basically an object whose members are dynamic, so
-        # self.overview.foo could work in some places and not others, depending
-        # on perms, configuration, activity (or lack thereof), etc.
-        self.overview = namedtuple('Overview', list(overview.keys()))(**overview)
-
+        # initialize this now. @needs_admin_privs will check this first to
+        # avoid making an HTTP call. If this is None, it'll trigger an
+        # HTTP call (by calling self.has_admin_rights) and populate this for
+        # next time.
+        self.is_admin = None
         return
+
+    @property
+    def has_admin_rights(self):
+        """
+        Determine if the creds passed in for authentication have admin
+        rights to RabbitMQ data. If not, then there's a decent amount of
+        information you can't get at.
+
+        """
+        whoami = self.client.get_whoami()
+        if whoami.get('administrator'):
+            self.is_admin = True
+            return True
+        else:
+            return False
+
+    def get_overview(self):
+        """
+        Data in the 'overview' depends on the privileges of the creds used,
+        but typically contains information about the management plugin version,
+        some high-level message stats, and aggregate queue totals. Admin-level
+        creds gets you information about the cluster node, listeners, etc.
+
+        """
+        overview = self.client.get_overview()
+        return overview
+
+    @needs_admin_privs
+    def get_users(self):
+        """
+        Returns a list of User objects (defined as a namedtuple inst above)
+
+        """
+        users = self.client.get_users()
+        userlist = [prototype_user._replace(**i) for i in users]
+        return userlist
 
     def get_all_vhosts(self):
         """
