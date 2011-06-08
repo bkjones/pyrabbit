@@ -94,7 +94,7 @@ class TestServer(unittest.TestCase):
                  'arguments': {}}
         self.http.get_exchange.return_value = xch
         myexch = self.srvr.get_exchange('%2F', 'foo')
-        self.assertEqual(myexch.name, 'foo')
+        self.assertEqual(myexch['name'], 'foo')
 
     def test_get_users_noprivs(self):
         with mock.patch.object(pyrabbit.api.Server, 'has_admin_rights') as mock_rights:

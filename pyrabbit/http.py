@@ -9,10 +9,11 @@ class HTTPError(Exception):
     HTTP error of some kind (404, 500, etc).
 
     """
-    def __init__(self, status=None, reason=None):
+    def __init__(self, status=None, reason=None, path=None):
         self.status = status
         self.reason = reason
-        self.output = "%s - %s" % (self.status, self.reason)
+        self.path = path
+        self.output = "%s - %s (%s)" % (self.status, self.reason, self.path)
 
     def __str__(self):
         return self.output
@@ -59,7 +60,7 @@ class HTTPClient(object):
             raise NetworkError("Error: %s %s" % (type(out), out))
 
         if resp.status != 200:
-            raise HTTPError(resp.status, resp.reason)
+            raise HTTPError(resp.status, resp.reason, path)
         else:
             return resp, content
 
