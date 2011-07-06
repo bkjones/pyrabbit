@@ -75,6 +75,10 @@ class TestHTTPClient(unittest.TestCase):
         queues = self.c.get_queues('testvhost')
         self.assertIsInstance(queues, list)
 
+    def test_get_named_queue(self):
+        queue = self.c.get_queue('%2F', 'TestQ')
+        self.assertIsInstance(queue, dict)
+
     def test_get_all_exchanges(self):
         xchs = self.c.get_exchanges()
         self.assertIsInstance(xchs, list)

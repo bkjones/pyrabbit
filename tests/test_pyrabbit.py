@@ -106,3 +106,12 @@ class TestServer(unittest.TestCase):
             mock_rights.__get__ = mock.Mock(return_value=True)
             self.assertTrue(self.srvr.get_users)
 
+    def test_get_queue_depth(self):
+        q = {'messages': 4}
+        self.http.get_queue.return_value = q
+        depth = self.srvr.get_queue_depth('/', 'test')
+        self.assertEqual(depth, q['messages'])
+
+if __name__ == "__main__":
+    log = open('test_out.log', 'w')
+    unittest.main(testRunner=unittest.TextTestRunner(log))

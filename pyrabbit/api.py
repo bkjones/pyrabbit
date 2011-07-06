@@ -15,6 +15,7 @@ def needs_admin_privs(fun):
             raise PermissionError("Insufficient privs. User '%s'" % self.user)
     return wrapper
 
+
 class Server(object):
     """
     Abstraction of the RabbitMQ Management HTTP API.
@@ -107,6 +108,12 @@ class Server(object):
         vhost = '%2F' if vhost == '/' else vhost
         q = self.client.get_queue(vhost, name)
         return q
+
+    def get_queue_depth(self, vhost, name):
+        vhost = '%2F' if vhost == '/' else vhost
+        q = self.get_queue(vhost, name)
+        depth = q['messages']
+        return depth
 
     def purge_queues(self, queues):
         """
