@@ -10,7 +10,7 @@ def needs_admin_privs(fun):
     @functools.wraps(fun)
     def wrapper(self, *args, **kwargs):
         if self.is_admin or self.has_admin_rights:
-            fun(self, *args, **kwargs)
+            return fun(self, *args, **kwargs)
         else:
             raise PermissionError("Insufficient privs. User '%s'" % self.user)
     return wrapper

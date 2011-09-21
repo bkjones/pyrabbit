@@ -51,6 +51,7 @@ class TestHTTPClient(unittest.TestCase):
 
     def test_get_users_200(self):
         self.assertTrue(self.c.get_users())
+        self.assertIsNotNone(self.c.get_users())
 
     def test_get_users_noprivs(self):
         srvr = http.HTTPClient('localhost:55672', 'luser', 'luser')
