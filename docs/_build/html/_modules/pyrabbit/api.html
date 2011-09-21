@@ -1,0 +1,251 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyrabbit.api &mdash; PyRabbit v0.9 documentation</title>
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="PyRabbit v0.9 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">PyRabbit v0.9 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyrabbit.api</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">http</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">class</span> <span class="nc">PermissionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">needs_admin_privs</span><span class="p">(</span><span class="n">fun</span><span class="p">):</span>
+    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_admin_rights</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PermissionError</span><span class="p">(</span><span class="s">&quot;Insufficient privs. User &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<div class="viewcode-block" id="Server"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server">[docs]</a><span class="k">class</span> <span class="nc">Server</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstraction of the RabbitMQ Management HTTP API.</span>
+
+<span class="sd">    HTTP calls are delegated to the  HTTPClient class for ease of testing,</span>
+<span class="sd">    cleanliness, separation of duty, flexibility, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">passwd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Populates server attributes using passed-in parameters and </span>
+<span class="sd">        the HTTP API&#39;s &#39;overview&#39; information. It also instantiates</span>
+<span class="sd">        an httplib2 HTTP client and adds credentia    ls</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">passwd</span> <span class="o">=</span> <span class="n">passwd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">HTTPClient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">passwd</span><span class="p">)</span>
+
+        <span class="c"># initialize this now. @needs_admin_privs will check this first to</span>
+        <span class="c"># avoid making an HTTP call. If this is None, it&#39;ll trigger an</span>
+        <span class="c"># HTTP call (by calling self.has_admin_rights) and populate this for</span>
+        <span class="c"># next time.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Server.has_admin_rights"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.has_admin_rights">[docs]</a>    <span class="k">def</span> <span class="nf">has_admin_rights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine if the creds passed in for authentication have admin</span>
+<span class="sd">        rights to RabbitMQ data. If not, then there&#39;s a decent amount of</span>
+<span class="sd">        information you can&#39;t get at.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">whoami</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_whoami</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">whoami</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;administrator&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="Server.get_overview"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_overview">[docs]</a>    <span class="k">def</span> <span class="nf">get_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Data in the &#39;overview&#39; depends on the privileges of the creds used,</span>
+<span class="sd">        but typically contains information about the management plugin version,</span>
+<span class="sd">        some high-level message stats, and aggregate queue totals. Admin-level</span>
+<span class="sd">        creds gets you information about the cluster node, listeners, etc.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">overview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_overview</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">overview</span>
+</div>
+    <span class="nd">@needs_admin_privs</span>
+<div class="viewcode-block" id="Server.get_users"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_users">[docs]</a>    <span class="k">def</span> <span class="nf">get_users</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of dictionaries.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">users</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_users</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">users</span>
+</div>
+<div class="viewcode-block" id="Server.get_all_vhosts"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_all_vhosts">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_vhosts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of namedtuples that act and are in all ways</span>
+<span class="sd">        equivalent to instances of type VHost. Since all operations on</span>
+<span class="sd">        these objects are done via the API provided by this Server class,</span>
+<span class="sd">        VHosts are just bags of vhost attributes that are addressable using</span>
+<span class="sd">        cleaner, more meaningful syntax than objects</span>
+<span class="sd">        (e.g. &#39;v.name&#39; instead of &#39;v[0]&#39;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vhosts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_all_vhosts</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">vhosts</span>
+</div>
+<div class="viewcode-block" id="Server.get_queues"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_queues">[docs]</a>    <span class="k">def</span> <span class="nf">get_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all queues, or all queues in a vhost if vhost is not None.</span>
+<span class="sd">        Returns a list.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">queues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_queues</span><span class="p">(</span><span class="n">vhost</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">queues</span>
+</div>
+<div class="viewcode-block" id="Server.get_queue"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_queue">[docs]</a>    <span class="k">def</span> <span class="nf">get_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a single queue, which requires both vhost and name.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vhost</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%2F</span><span class="s">&#39;</span> <span class="k">if</span> <span class="n">vhost</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span> <span class="k">else</span> <span class="n">vhost</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_queue</span><span class="p">(</span><span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q</span>
+</div>
+<div class="viewcode-block" id="Server.get_queue_depth"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_queue_depth">[docs]</a>    <span class="k">def</span> <span class="nf">get_queue_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">vhost</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%2F</span><span class="s">&#39;</span> <span class="k">if</span> <span class="n">vhost</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span> <span class="k">else</span> <span class="n">vhost</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_queue</span><span class="p">(</span><span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="s">&#39;messages&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">depth</span>
+</div>
+<div class="viewcode-block" id="Server.purge_queues"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.purge_queues">[docs]</a>    <span class="k">def</span> <span class="nf">purge_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queues</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The queues parameter should be a list of tuples of the format:</span>
+
+<span class="sd">        (&#39;name&#39;, &#39;vhost&#39;)</span>
+
+<span class="sd">        If &#39;vhost&#39; == &#39;/&#39;, it&#39;ll be changed to &#39;%2F&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">vhost</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">:</span>
+            <span class="n">vhost</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%2F</span><span class="s">&#39;</span> <span class="k">if</span> <span class="n">vhost</span> <span class="o">==</span><span class="s">&#39;/&#39;</span> <span class="k">else</span> <span class="n">vhost</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">purge_queue</span><span class="p">(</span><span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Server.purge_queue"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.purge_queue">[docs]</a>    <span class="k">def</span> <span class="nf">purge_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">vhost</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%2F</span><span class="s">&#39;</span> <span class="k">if</span> <span class="n">vhost</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span> <span class="k">else</span> <span class="n">vhost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">purge_queue</span><span class="p">(</span><span class="n">vhost</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Server.get_connections"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_connections">[docs]</a>    <span class="k">def</span> <span class="nf">get_connections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of one or more dictionaries</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">connections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_connections</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">connections</span>
+</div>
+<div class="viewcode-block" id="Server.get_exchanges"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_exchanges">[docs]</a>    <span class="k">def</span> <span class="nf">get_exchanges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of dictionaries.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xchs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_exchanges</span><span class="p">(</span><span class="n">vhost</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xchs</span>
+</div>
+<div class="viewcode-block" id="Server.get_exchange"><a class="viewcode-back" href="../../index.html#pyrabbit.api.Server.get_exchange">[docs]</a>    <span class="k">def</span> <span class="nf">get_exchange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="p">,</span> <span class="n">xname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a single exchange namedtuple subclass.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_exchange</span><span class="p">(</span><span class="n">vhost</span><span class="p">,</span> <span class="n">xname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xch</span>
+</div>
+    <span class="k">def</span> <span class="nf">is_alive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vhost</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%2F</span><span class="s">&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">is_alive</span><span class="p">(</span><span class="n">vhost</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">PyRabbit v0.9 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Brian K. Jones.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
