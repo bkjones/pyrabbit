@@ -5,6 +5,7 @@
 *.pyc
 *egg-info*
 build
+_build
 dist
 *.log
 
