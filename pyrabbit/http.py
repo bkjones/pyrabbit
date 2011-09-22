@@ -19,12 +19,25 @@ class HTTPError(Exception):
         return self.output
 
 class NetworkError(Exception):
+    """Denotes a failure to communicate with the REST API
+
+    """
     pass
 
 class APIError(Exception):
+    """Denotes a failure due to unexpected or invalid 
+    input/output between the client and the API
+
+    """
     pass
 
 class HTTPClient(object):
+    """
+    A wrapper for (currently) httplib2. Abstracts away 
+    things like path building, return value parsing, etc., 
+    so the api module code stays clean and easy to read/use.
+
+    """
     urls = {'overview': 'overview',
             'all_queues': 'queues',
             'all_exchanges': 'exchanges',
@@ -43,16 +56,36 @@ class HTTPClient(object):
             'connections_by_name': 'connections/%s'}
 
     def __init__(self, server, uname, passwd):
+        """
+        :param string server: 'host:port' string denoting the location of the 
+            broker and the port for interfacing with its REST API.
+        :param string uname: Username credential used to authenticate. 
+        :param string passwd: Password used to authenticate w/ REST API
+
+        """
+
         self.client = httplib2.Http()
         self.client.add_credentials(uname, passwd)
         self.base_url = 'http://%s/api' % server
 
     def decode_json_content(self, content):
+        """
+        :param json content: A Python JSON object. 
+
+        """
         str_ct = content.decode('utf8')
         py_ct = json.loads(str_ct)
         return py_ct
 
     def do_call(self, path, reqtype):
+        """
+        Send an HTTP request to the REST API.
+
+        :param string path: A URL
+        :param string reqtype: The HTTP method (GET, POST, etc.) to use 
+            in the request.
+
+        """
         try:
             resp, content = self.client.request(path, reqtype)
         except Exception as out:

@@ -21,7 +21,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyRabbit v0.9 documentation" href="#" /> 
+    <link rel="top" title="PyRabbit v0.9 documentation" href="#" />
+    <link rel="next" title="The api Module" href="api.html" /> 
   </head>
   <body>
     <div class="related">
@@ -33,6 +34,9 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="The api Module"
+             accesskey="N">next</a> |</li>
         <li><a href="#">PyRabbit v0.9 documentation</a> &raquo;</li> 
       </ul>
     </div>  
@@ -46,241 +50,11 @@
 <h1>Welcome to PyRabbit&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyrabbit-s-documentation" title="Permalink to this headline">¶</a></h1>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
-<ul class="simple">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">The api Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">The http Module</a></li>
 </ul>
 </div>
-<span class="target" id="module-pyrabbit.api"></span><dl class="class">
-<dt id="pyrabbit.api.Server">
-<em class="property">class </em><tt class="descclassname">pyrabbit.api.</tt><tt class="descname">Server</tt><big>(</big><em>host</em>, <em>user</em>, <em>passwd</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstraction of the RabbitMQ Management HTTP API.</p>
-<p>HTTP calls are delegated to the  HTTPClient class for ease of testing,
-cleanliness, separation of duty, flexibility, etc.</p>
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_all_vhosts">
-<tt class="descname">get_all_vhosts</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_all_vhosts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_all_vhosts" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">a list of dicts, each dict representing a vhost 
-on the broker.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_connections">
-<tt class="descname">get_connections</tt><big>(</big><em>name=None</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_connections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_connections" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a list of one or more dictionaries, each holding 
-attributes of a connection to the broker. If &#8216;name&#8217; is given and
-not None, returns a dictionary for a named connection.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of a connection to query for.</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">A list of dictionaries, each representing a connection.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_exchange">
-<tt class="descname">get_exchange</tt><big>(</big><em>vhost</em>, <em>xname</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_exchange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_exchange" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vhost</strong> (<em>string</em>) &#8211; Name of the vhost the exchange belongs to.</li>
-<li><strong>xname</strong> (<em>string</em>) &#8211; Name of the exchange to query for.</li>
-</ul>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary w/ the exchange&#8217;s attributes.</p>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_exchanges">
-<tt class="descname">get_exchanges</tt><big>(</big><em>vhost=None</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_exchanges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_exchanges" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vhost</strong> (<em>string</em>) &#8211; The vhost to list exchanges from.</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">a list of dictionaries.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_overview">
-<tt class="descname">get_overview</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_overview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_overview" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-<p>Data in the &#8216;overview&#8217; depends on the privileges of the creds used,
-but typically contains information about the management plugin version,
-some high-level message stats, and aggregate queue totals. Admin-level
-creds gets you information about the cluster node, listeners, etc.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_queue">
-<tt class="descname">get_queue</tt><big>(</big><em>vhost</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_queue" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a single queue, which requires both vhost and name.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vhost</strong> (<em>string</em>) &#8211; The virtual host for the queue being requested. 
-If the vhost is &#8216;/&#8217;, note that it will be translated to &#8216;%2F&#8217; to 
-conform to URL encoding requirements.</li>
-<li><strong>name</strong> (<em>string</em>) &#8211; The name of the queue being requested.</li>
-</ul>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary of queue properties.</p>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_queue_depth">
-<tt class="descname">get_queue_depth</tt><big>(</big><em>vhost</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_queue_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_queue_depth" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Get the number of messages currently in a queue. This is a convenience</dt>
-<dd>function that just calls <a class="reference internal" href="#pyrabbit.api.Server.get_queue" title="pyrabbit.api.Server.get_queue"><tt class="xref py py-meth docutils literal"><span class="pre">Server.get_queue()</span></tt></a> and pulls out/returns the &#8216;messages&#8217; 
-field from the dictionary it returns.</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vhost</strong> (<em>string</em>) &#8211; The vhost of the queue being queried.</li>
-<li><strong>name</strong> (<em>string</em>) &#8211; The name of the queue to query.</li>
-</ul>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Number of messages in the queue</p>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">integer</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_queues">
-<tt class="descname">get_queues</tt><big>(</big><em>vhost=None</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_queues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_queues" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get all queues, or all queues in a vhost if vhost is not None.
-Returns a list.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vhost</strong> (<em>string</em>) &#8211; The virtual host to list queues for. If This is None
-(the default), all queues for the broker instance are returned.</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">A list of dicts, each representing a queue.</td>
-</tr>
-<tr class="field"><th class="field-name">Return type:</th><td class="field-body">list of dicts</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.get_users">
-<tt class="descname">get_users</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.get_users"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.get_users" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">a list of dictionaries, each representing a user. This 
-method is decorated with <a class="reference external" href="mailto:'&#37;&#52;&#48;needs_admin_privs">'<span>&#64;</span>needs_admin_privs</a>&#8216;, and will raise
-an error if the credentials used to set up the broker connection 
-do not have admin privileges.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyrabbit.api.Server.has_admin_rights">
-<tt class="descname">has_admin_rights</tt><a class="reference internal" href="_modules/pyrabbit/api.html#Server.has_admin_rights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.has_admin_rights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine if the creds passed in for authentication have admin
-rights to RabbitMQ data. If not, then there&#8217;s a decent amount of
-information you can&#8217;t get at.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.purge_queue">
-<tt class="descname">purge_queue</tt><big>(</big><em>vhost</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.purge_queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.purge_queue" title="Permalink to this definition">¶</a></dt>
-<dd><p>Purge all messages from a single queue. This is a convenience method
-so you aren&#8217;t forced to supply a list containing a single tuple to 
-the purge_queues method.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vhost</strong> (<em>string</em>) &#8211; The vhost of the queue being purged.</li>
-<li><strong>name</strong> (<em>string</em>) &#8211; The name of the queue being purged.</li>
-</ul>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyrabbit.api.Server.purge_queues">
-<tt class="descname">purge_queues</tt><big>(</big><em>queues</em><big>)</big><a class="reference internal" href="_modules/pyrabbit/api.html#Server.purge_queues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyrabbit.api.Server.purge_queues" title="Permalink to this definition">¶</a></dt>
-<dd><p>Purge all messages from one or more queues.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>queues</strong> (<em>list</em>) &#8211; A list of (&#8216;qname&#8217;, &#8216;vhost&#8217;) tuples.</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">True on success</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -289,6 +63,62 @@ the purge_queues method.</p>
 <li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
 <li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
+<div class="section" id="pyrabbit-overview">
+<h2>PyRabbit Overview<a class="headerlink" href="#pyrabbit-overview" title="Permalink to this headline">¶</a></h2>
+<p>pyrabbit is a module to make it easy to interface w/ RabbitMQ&#8217;s HTTP Management
+API.  It&#8217;s tested against RabbitMQ 2.4.1 using Python 2.6-3.2. Yes, it works
+great w/ Python 3!</p>
+<p>Here&#8217;s a quick demo:</p>
+<div class="highlight-python"><pre>newhotness:pyrabbit bjones$ python3.2
+Python 3.2 (r32:88445, Mar 29 2011, 20:18:33)
+[GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+
+&gt;&gt;&gt; from pyrabbit import api
+&gt;&gt;&gt; srvr = api.Server('localhost:55672', 'guest', 'guest')
+&gt;&gt;&gt; for q in srvr.get_queues():
+...     '{0.name:&lt;40s}{0.messages:&gt;15d}'.format(q)
+...
+'amq.gen-1QXqTFany6PFsi2NSmv2qA==                      0'
+'amq.gen-KmfVj0FEIy9zBtuTtWo4Iw==                      0'
+'amq.gen-TMPMGWJgmaZtVnUa1CAavw==                      0'
+'amq.gen-TZ+dIc1riU2drT78tar/YQ==                      0'
+'amq.gen-bNZKE9TDbTFBEwlCgI6v4Q==                      0'
+'amq.gen-qluGgP91Oe6OQFpg0oWRww==                      0'
+'amq.gen-z3EzucIl0qJVCXiL6hNUsg==                      0'
+'jonesyTestQ                                           2'
+'publish                                               0'
+'testq                                                 0'
+&gt;&gt;&gt; testq = srvr.get_queue('%2F', 'jonesyTestQ')
+&gt;&gt;&gt; testq
+Queue(memory=12744, messages=2, consumer_details=[], idle_since='2011-5-27
+14:26:25', exclusive_consumer_pid='', exclusive_consumer_tag='',
+messages_ready=2, messages_unacknowledged=0, consumers=0,
+backing_queue_status={'q1': 0, 'q3': 2, 'q2': 0, 'q4': 0,
+'avg_ack_egress_rate': 0.0, 'ram_msg_count': 0, 'ram_ack_count': 0,
+'outstanding_txns': 0, 'len': 2, 'persistent_count': 2, 'target_ram_count': 0,
+'next_seq_id': 3, 'delta': ['delta', 'undefined', 0, 'undefined'],
+'pending_acks': 0, 'avg_ack_ingress_rate': 0.0, 'avg_egress_rate': 0.0,
+'avg_ingress_rate': 0.0, 'ram_index_count': 0}, name='jonesyTestQ',
+vhost='/', durable=True, auto_delete=False, owner_pid='none', arguments={},
+pid='&lt;rabbit@newhotness.3.12974.633&gt;', node='rabbit@newhotness')
+&gt;&gt;&gt; srvr.purge_queues([testq])
+True
+&gt;&gt;&gt; for q in srvr.get_queues():
+...     '{0.name:&lt;40s}{0.messages:&gt;15d}'.format(q)
+...
+'amq.gen-1QXqTFany6PFsi2NSmv2qA==                      0'
+'amq.gen-KmfVj0FEIy9zBtuTtWo4Iw==                      0'
+'amq.gen-TMPMGWJgmaZtVnUa1CAavw==                      0'
+'amq.gen-TZ+dIc1riU2drT78tar/YQ==                      0'
+'amq.gen-bNZKE9TDbTFBEwlCgI6v4Q==                      0'
+'amq.gen-qluGgP91Oe6OQFpg0oWRww==                      0'
+'amq.gen-z3EzucIl0qJVCXiL6hNUsg==                      0'
+'jonesyTestQ                                           0'
+'publish                                               0'
+'testq                                                 0'</pre>
+</div>
+</div>
 </div>
 
 
@@ -302,9 +132,15 @@ the purge_queues method.</p>
 <li><a class="reference internal" href="#">Welcome to PyRabbit&#8217;s documentation!</a><ul>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a><ul>
+<li><a class="reference internal" href="#pyrabbit-overview">PyRabbit Overview</a></li>
+</ul>
+</li>
 </ul>
 
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">The api Module</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -336,6 +172,9 @@ the purge_queues method.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="The api Module"
+             >next</a> |</li>
         <li><a href="#">PyRabbit v0.9 documentation</a> &raquo;</li> 
       </ul>
     </div>
