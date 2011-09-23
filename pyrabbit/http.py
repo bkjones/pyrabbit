@@ -141,7 +141,7 @@ class HTTPClient(object):
         Returns a list of all users. Requires admin privileges. This method
         raises APIError when the broker returns a 401. This is mostly for cases
         where this class is used directly. The intent is actually to have all
-        application code utilize :module:`api` to interact with the REST
+        application code utilize :py:mod:`api` to interact with the REST
         interface, and that module applies the api.needs_admin_privs decorator
         to methods of that module requiring admin rights. Therefore, the
         api module code should actually never have to handle the APIError
