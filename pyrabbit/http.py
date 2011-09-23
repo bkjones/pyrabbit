@@ -70,6 +70,8 @@ class HTTPClient(object):
 
     def decode_json_content(self, content):
         """
+        Returns the JSON-decoded Python representation of 'content'.
+
         :param json content: A Python JSON object. 
 
         """
@@ -103,6 +105,11 @@ class HTTPClient(object):
         server is alive and the vhost is active. The broker (not this code)
         creates a queue and then sends/consumes a message from it.
 
+        :param string vhost: There should be no real reason to ever change
+            this from the default value, but it's there if you need to.
+        :returns bool: True if alive, False otherwise
+        :raises: HTTPError if *vhost* doesn't exist on the broker.
+
         """
         uri = os.path.join(self.base_url,
                            HTTPClient.urls['live_test'] % vhost)
@@ -120,12 +127,26 @@ class HTTPClient(object):
             return False
 
     def get_whoami(self):
+        """
+        A convenience function used in the event that you need to confirm that
+        the broker thinks you are who you think you are.
+        """
         path = os.path.join(self.base_url, HTTPClient.urls['whoami'])
         resp, content = self.do_call(path, 'GET')
         whoami = self.decode_json_content(content)
         return whoami
 
     def get_users(self):
+        """
+        Returns a list of all users. Requires admin privileges. This method
+        raises APIError when the broker returns a 401. This is mostly for cases
+        where this class is used directly. The intent is actually to have all
+        application code utilize :module:`api` to interact with the REST
+        interface, and that module applies the api.needs_admin_privs decorator
+        to methods of that module requiring admin rights. Therefore, the
+        api module code should actually never have to handle the APIError
+        raised here.
+        """
         path = os.path.join(self.base_url, HTTPClient.urls['all_users'])
 
         try:
@@ -141,7 +162,7 @@ class HTTPClient(object):
 
     def get_overview(self):
         """
-        /api/overview provides a bunch of miscellaneous data about the
+        Provides a dictionary of miscellaneous data about the
         broker instance itself.
 
         """
@@ -169,6 +190,9 @@ class HTTPClient(object):
         Get a list of all queues a broker knows about, or all queues in an
         optionally-supplied vhost name.
 
+        :param string vhost: Vhost to query for queues. By default this is
+            None, which triggers a request for all queues in all vhosts.
+
         """
         if vhost:
             path = HTTPClient.urls['queues_by_vhost'] % vhost
@@ -180,6 +204,13 @@ class HTTPClient(object):
         return queues
 
     def get_queue(self, vhost, name):
+        """
+        Get information about a specific queue.
+
+        :param string vhost: The vhost containing the target queue.
+        :param string name: The name of the queue.
+
+        """
         path = HTTPClient.urls['queues_by_name'] % (vhost, name)
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         queue = self.decode_json_content(content)
@@ -188,7 +219,9 @@ class HTTPClient(object):
 
     def purge_queue(self, vhost, name):
         """
-        The queues parameter should be a list of one or more queue objects.
+        Clears a specific queue of all messages.
+
+        :param string vhost: The vhost containing the queue to purge.
 
         """
         path = HTTPClient.urls['purge_queue'] % (vhost, name)
@@ -202,6 +235,12 @@ class HTTPClient(object):
         return True
 
     def get_exchanges(self, vhost=None):
+        """
+        :returns: A list of dicts
+        :param string vhost: A vhost to query for exchanges, or None (default),
+            which triggers a query for all exchanges in all vhosts.
+
+        """
         if vhost:
             path = HTTPClient.urls['exchanges_by_vhost'] % vhost
         else:
@@ -215,6 +254,10 @@ class HTTPClient(object):
         """
         Gets a single exchange which requires a vhost and name.
 
+        :param string vhost: The vhost containing the target exchange
+        :param string name: The name of the exchange
+        :returns: dict
+
         """
         path = HTTPClient.urls['exchange_by_name'] % (vhost, name)
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
@@ -222,6 +265,11 @@ class HTTPClient(object):
         return exch
 
     def get_connections(self, name=None):
+        """
+        :returns: list of dicts, or an empty list if there are no connections.
+            if *name* is not None, returns a dict.
+        :param string name: The name of a specific connection to get
+        """
         if name:
             path = HTTPClient.urls['connections_by_name']
         else:
@@ -231,6 +279,10 @@ class HTTPClient(object):
         return conns
 
     def get_channels(self):
+        """
+        Return a list of dicts containing details about broker connections.
+        :returns: list of dicts
+        """
         path = HTTPClient.urls['all_channels']
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         chans = self.decode_json_content(content)
