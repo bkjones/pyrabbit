@@ -79,7 +79,7 @@ class HTTPClient(object):
         py_ct = json.loads(str_ct)
         return py_ct
 
-    def do_call(self, path, reqtype):
+    def do_call(self, path, reqtype, body=None, headers=None):
         """
         Send an HTTP request to the REST API.
 
@@ -89,12 +89,12 @@ class HTTPClient(object):
 
         """
         try:
-            resp, content = self.client.request(path, reqtype)
+            resp, content = self.client.request(path, reqtype, body or '', headers or {})
         except Exception as out:
             # net-related exception types from httplib2 are unpredictable.
             raise NetworkError("Error: %s %s" % (type(out), out))
 
-        if resp.status != 200:
+        if resp.status != 200 and resp.status != 204:
             raise HTTPError(resp.status, resp.reason, path)
         else:
             return resp, content
@@ -263,6 +263,66 @@ class HTTPClient(object):
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         exch = self.decode_json_content(content)
         return exch
+
+    def create_exchange(self,
+                        vhost,
+                        name,
+                        type,
+                        auto_delete=False,
+                        durable=True,
+                        internal=False,
+                        arguments=None):
+        """
+        Creates an exchange in the given vhost with the given name. As per the
+        RabbitMQ API documentation, a JSON body also needs to be included that
+        "looks something like this":
+
+        {"type":"direct",
+        "auto_delete":false,
+        "durable":true,
+        "internal":false,
+        "arguments":[]}
+
+        On success, the API returns a 204 with no content, in which case this
+        function returns True. If any other response is received, it's raised.
+
+        :param string vhost: Vhost to create the exchange in.
+        :param string name: Name of the proposed exchange.
+        :param string type: The AMQP exchange type.
+        :param bool auto_delete: Whether or not the exchange should be
+            dropped when the no. of consumers drops to zero.
+        :param bool durable: Whether you want this exchange to persist a
+            broker restart.
+        :param bool internal: Whether or not this is a queue for use by the
+            broker only.
+        :param list arguments: If given, should be a list. If not given, an
+            empty list is sent.
+
+        """
+
+        path = HTTPClient.urls['exchange_by_name'] % (vhost, name)
+        body = json.dumps({"type": type, "auto_delete": auto_delete,
+                           "durable": durable, "internal": internal,
+                           "arguments": arguments or []})
+        self.do_call(os.path.join(self.base_url, path),
+                                     'PUT',
+                                     body,
+                                     headers={'content-type': 'application/json'})
+        return True
+
+    def delete_exchange(self, vhost, name):
+        """
+        Delete the named exchange from the named vhost. The API returns a 204
+        on success, in which case this method returns True, otherwise the
+        error is raised.
+
+        :param string vhost: Vhost where target exchange was created
+        :param string name: The name of the exchange to delete.
+        :returns bool: True on success.
+        """
+        path = HTTPClient.urls['exchange_by_name'] % (vhost, name)
+        self.do_call(os.path.join(self.base_url, path), 'DELETE')
+        return True
 
     def get_connections(self, name=None):
         """

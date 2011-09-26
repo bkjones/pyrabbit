@@ -104,3 +104,9 @@ class TestHTTPClient(unittest.TestCase):
     def test_purge_queue(self):
         status = self.c.purge_queue('%2F', 'testq')
         self.assertTrue(status)
+        
+    def test_create_exchange(self):
+        self.assertTrue(self.c.create_exchange('%2F', 'pyrabbit_test_exchange', 'direct'))
+
+    def test_delete_exchange(self):
+        self.assertTrue(self.c.delete_exchange('%2F', 'pyrabbit_test_exchange'))
