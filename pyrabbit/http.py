@@ -46,6 +46,7 @@ class HTTPClient(object):
             'all_nodes': 'nodes',
             'all_vhosts': 'vhosts',
             'all_users': 'users',
+            'all_bindings': 'bindings',
             'whoami': 'whoami',
             'queues_by_vhost': 'queues/%s',
             'queues_by_name': 'queues/%s/%s',
@@ -53,7 +54,13 @@ class HTTPClient(object):
             'exchange_by_name': 'exchanges/%s/%s',
             'live_test': 'aliveness-test/%s',
             'purge_queue': 'queues/%s/%s/contents',
-            'connections_by_name': 'connections/%s'}
+            'connections_by_name': 'connections/%s',
+            'bindings_by_source_exch': 'exchanges/%s/%s/bindings/source',
+            'bindings_by_dest_exch': 'exchanges/%s/%s/bindings/destination',
+            'bindings_on_queue': 'queues/%s/%s/bindings',
+            'get_from_queue': 'queues/%s/%s/get',
+            'publish_to_exchange': 'exchanges/%s/%s/publish',
+            }
 
     def __init__(self, server, uname, passwd):
         """
@@ -86,10 +93,16 @@ class HTTPClient(object):
         :param string path: A URL
         :param string reqtype: The HTTP method (GET, POST, etc.) to use 
             in the request.
+        :param string body: A string representing any data to be sent in the
+            body of the HTTP request.
+        :param dict headers: {header-name: header-value} dictionary.
 
         """
         try:
-            resp, content = self.client.request(path, reqtype, body or '', headers or {})
+            resp, content = self.client.request(path,
+                                                reqtype,
+                                                body or '',
+                                                headers or {})
         except Exception as out:
             # net-related exception types from httplib2 are unpredictable.
             raise NetworkError("Error: %s %s" % (type(out), out))
@@ -305,9 +318,9 @@ class HTTPClient(object):
                            "durable": durable, "internal": internal,
                            "arguments": arguments or []})
         self.do_call(os.path.join(self.base_url, path),
-                                     'PUT',
-                                     body,
-                                     headers={'content-type': 'application/json'})
+                                  'PUT',
+                                  body,
+                                  headers={'content-type': 'application/json'})
         return True
 
     def delete_exchange(self, vhost, name):
@@ -324,19 +337,21 @@ class HTTPClient(object):
         self.do_call(os.path.join(self.base_url, path), 'DELETE')
         return True
 
-    def get_connections(self, name=None):
+    def get_connections(self):
         """
         :returns: list of dicts, or an empty list if there are no connections.
-            if *name* is not None, returns a dict.
         :param string name: The name of a specific connection to get
         """
-        if name:
-            path = HTTPClient.urls['connections_by_name']
-        else:
-            path = HTTPClient.urls['all_connections']
+        path = HTTPClient.urls['all_connections']
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         conns = self.decode_json_content(content)
         return conns
+
+    def get_connection(self, name):
+        path = HTTPClient.urls['connections_by_name']
+        resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
+        conn = self.decode_json_content(content)
+        return conn
 
     def get_channels(self):
         """
