@@ -247,6 +247,31 @@ class HTTPClient(object):
                 raise
         return True
 
+    def create_queue(self, name, vhost, auto_delete=False, durable=True,
+                     arguments=None, node='rabbit@localhost'):
+        """
+        Creates a queue of the given name in the given vhost. Per API docs,
+        the body of the message should look 'something like this':
+
+        {"auto_delete":false,"durable":true,"arguments":[],"node":"rabbit@smacmullen"}
+
+        :param string name: A name for the queue
+        :param string vhost: The existing vhost to put the new queue into.
+        :param bool auto_delete: Whether the queue should go away when there
+                are no consumers
+        :param bool durable: Whether the queue should persist a reboot.
+        :param list arguments: I have no idea what this is. TODO: find out.
+        :param string node: The rabbit node name to create the queue on.
+        """
+        path = HTTPClient.urls['queues_by_name'] % (vhost, name)
+        body = json.dumps({"auto_delete": auto_delete,  "durable": durable,
+                           "arguments": arguments or [], "node": node})
+        self.do_call(os.path.join(self.base_url, path),
+                     'PUT',
+                     body,
+                     headers={'content-type': 'application/json'})
+        return True
+
     def get_exchanges(self, vhost=None):
         """
         :returns: A list of dicts
@@ -362,3 +387,16 @@ class HTTPClient(object):
         resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
         chans = self.decode_json_content(content)
         return chans
+    
+    def get_bindings(self):
+        """
+        Returns a list of dicts. 
+
+        """
+        path = HTTPClient.urls['all_bindings']
+        resp, content = self.do_call(os.path.join(self.base_url, path), 'GET')
+        bindings = self.decode_json_content(content)
+        return bindings
+
+
+

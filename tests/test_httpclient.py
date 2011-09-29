@@ -110,3 +110,7 @@ class TestHTTPClient(unittest.TestCase):
 
     def test_delete_exchange(self):
         self.assertTrue(self.c.delete_exchange('%2F', 'pyrabbit_test_exchange'))
+
+    def test_get_bindings(self):
+        bindings = self.c.get_bindings()
+        self.assertIsInstance(bindings, list)

@@ -103,7 +103,7 @@ class Server(object):
         Returns a list.
 
         :param string vhost: The virtual host to list queues for. If This is None
-                   (the default), all queues for the broker instance are returned. 
+                   (the default), all queues for the broker instance are returned.
         :returns: A list of dicts, each representing a queue.
         :rtype: list of dicts
 
@@ -170,9 +170,18 @@ class Server(object):
         """
         vhost = '%2F' if vhost == '/' else vhost
         self.client.purge_queue(vhost, name)
-        return 
+        return
 
-    def get_connections(self, name=None):
+    def create_queue(self,name, vhost, auto_delete=False, durable=True,
+                         arguments=None, node='rabbit@localhost'):
+        """
+        Create a queue. This is just a passthrough to the http client method
+        of the same name. The args are identical (see :mod:`pyrabbit.http`)
+        """
+        return self.client.create_queue(name, vhost, auto_delete, durable,
+                                        arguments or [], node)
+
+    def get_connections(self):
         """
         Returns a list of one or more dictionaries, each holding 
         attributes of a connection to the broker. If 'name' is given and
@@ -182,8 +191,18 @@ class Server(object):
         :returns: A list of dictionaries, each representing a connection.
 
         """
-        connections = self.client.get_connections(name)
+        connections = self.client.get_connections()
         return connections
+
+    def get_connection(self, name):
+        """
+        Returns a dict of attributes for the named connection.
+
+        :param string name: name of the connection to retrieve
+
+        """
+        connection = self.client.get_connection(name)
+        return connection
 
     def get_exchanges(self, vhost=None):
         """
@@ -204,6 +223,17 @@ class Server(object):
         """
         xch = self.client.get_exchange(vhost, xname)
         return xch
+
+    def create_exchange(self, vhost, name, type,
+                        auto_delete=False, durable=True,
+                        internal=False, arguments=None):
+        return self.client.create_exchange(vhost, name, type, audo_delete,
+                                           durable, internal, arguments or [])
+
+
+    def get_bindings(self):
+        bindings = self.client.get_bindings()
+        return bindings
 
     def is_alive(self, vhost='%2F'):
         return self.client.is_alive(vhost)
