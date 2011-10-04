@@ -3,7 +3,7 @@ PyRabbit
 ==================
 
 pyrabbit is a module to make it easy to interface w/ RabbitMQ's HTTP Management
-API.  It's tested against RabbitMQ 2.4.1 using Python 2.6-3.2. Yes, it works
+API.  It's tested against RabbitMQ 2.4.1 and 2.6.1 using Python 2.6-3.2. Yes, it works
 great w/ Python 3! I strive for full test coverage, and right now it has 95%
 coverage of the http module, and 100% coverage of the api module.
 
