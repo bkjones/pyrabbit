@@ -15,7 +15,7 @@ from pyrabbit import http
 import mock
 
 # used by Server init
-test_overview_dict = {'node': 'bar', 
+test_overview_dict = {'node': 'bar',
             'management_version': '2.4.1',
             'queue_totals': 'rrrr',
             'listeners': 'ssss',
@@ -34,7 +34,7 @@ class TestServer(unittest.TestCase):
         out pyrabbit.api.HTTPClient and all of the methods needed for testing.
 
         pyrabbit.api.HTTPClient is a mock *class*, which gets instantiated by
-        Server as self.client, but for convenience I've provided the
+        Client as self.http, but for convenience I've provided the
         instantiated object as self.http for the tests to use, to eliminate
         long calls like:
 
@@ -48,10 +48,10 @@ class TestServer(unittest.TestCase):
         http.HTTPClient = mock.Mock(spec_set=http.HTTPClient)
         http.HTTPClient.return_value.get_overview.return_value = test_overview_dict
         self.http = http.HTTPClient.return_value
-        self.srvr = pyrabbit.api.Server('localhost:55672', 'guest', 'guest')
+        self.srvr = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
 
     def test_server_init_200(self):
-        self.assertIsInstance(self.srvr, pyrabbit.api.Server)
+        self.assertIsInstance(self.srvr, pyrabbit.api.Client)
         self.assertEqual(self.srvr.host, 'localhost:55672')
 
     def test_server_is_alive_default_vhost(self):
@@ -97,12 +97,12 @@ class TestServer(unittest.TestCase):
         self.assertEqual(myexch['name'], 'foo')
 
     def test_get_users_noprivs(self):
-        with mock.patch.object(pyrabbit.api.Server, 'has_admin_rights') as mock_rights:
+        with mock.patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
             mock_rights.__get__ = mock.Mock(return_value=False)
             self.assertRaises(pyrabbit.api.PermissionError, self.srvr.get_users)
 
     def test_get_users_withprivs(self):
-        with mock.patch.object(pyrabbit.api.Server, 'has_admin_rights') as mock_rights:
+        with mock.patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
             mock_rights.__get__ = mock.Mock(return_value=True)
             self.assertTrue(self.srvr.get_users)
 
