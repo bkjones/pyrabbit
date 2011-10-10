@@ -27,7 +27,7 @@ test_vhosts_dict = [{'name': '/'}]
 
 test_q_all = json.loads('[{"memory":12248,"messages":0,"consumer_details":[],"idle_since":"2011-5-27 15:17:35","exclusive_consumer_pid":"","exclusive_consumer_tag":"","messages_ready":0,"messages_unacknowledged":0,"messages":0,"consumers":0,"backing_queue_status":{"q1":0,"q2":0,"delta":["delta","undefined",0,"undefined"],"q3":0,"q4":0,"len":0,"pending_acks":0,"outstanding_txns":0,"target_ram_count":"infinity","ram_msg_count":0,"ram_ack_count":0,"ram_index_count":0,"next_seq_id":0,"persistent_count":0,"avg_ingress_rate":0.0,"avg_egress_rate":0.0,"avg_ack_ingress_rate":0.0,"avg_ack_egress_rate":0.0},"name":"testq","vhost":"/","durable":true,"auto_delete":false,"owner_pid":"none","arguments":{},"pid":"<rabbit@newhotness.3.225.0>","node":"rabbit@newhotness"}]')
 
-class TestServer(unittest.TestCase):
+class TestClient(unittest.TestCase):
     def setUp(self):
         """
         Since these are unit tests, we isolate the Server class by mocking
@@ -45,9 +45,9 @@ class TestServer(unittest.TestCase):
         self.http.get_overview.return_value = blah
 
         """
-        http.HTTPClient = mock.Mock(spec_set=http.HTTPClient)
-        http.HTTPClient.return_value.get_overview.return_value = test_overview_dict
-        self.http = http.HTTPClient.return_value
+        #http.HTTPClient = mock.Mock(spec_set=http.HTTPClient)
+        #http.HTTPClient.return_value.get_overview.return_value = test_overview_dict
+        #self.http = http.HTTPClient.return_value
         self.srvr = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
 
     def test_server_init_200(self):
@@ -55,21 +55,17 @@ class TestServer(unittest.TestCase):
         self.assertEqual(self.srvr.host, 'localhost:55672')
 
     def test_server_is_alive_default_vhost(self):
-        self.http.is_alive.return_value = True
         self.assertTrue(self.srvr.is_alive())
 
     def test_get_vhosts_200(self):
-        self.http.get_all_vhosts.return_value = test_vhosts_dict
         vhosts = self.srvr.get_all_vhosts()
         self.assertIsInstance(vhosts, list)
 
     def test_get_all_queues(self):
-        self.http.get_queues.return_value = test_q_all
         queues = self.srvr.get_queues()
         self.assertIsInstance(queues, list)
 
     def test_purge_queues(self):
-        self.http.purge_queue.return_value = True
         qu = namedtuple("Queue", ['name', 'vhost'])
         q1 = qu(name='q1', vhost='%2F')
         q2 = qu(name='q2', vhost='%2F')
@@ -83,7 +79,6 @@ class TestServer(unittest.TestCase):
                 {'name': 'bar', 'vhost': '/', 'type': 'direct',
                  'durable': False, 'auto_delete': False, 'internal': False,
                  'arguments': {}},]
-        self.http.get_exchanges.return_value = xchs
         xlist = self.srvr.get_exchanges()
         self.assertIsInstance(xlist, list)
         self.assertEqual(len(xlist), 2)
@@ -92,7 +87,6 @@ class TestServer(unittest.TestCase):
         xch = {'name': 'foo', 'vhost': '/', 'type': 'direct',
                  'durable': False, 'auto_delete': False, 'internal': False,
                  'arguments': {}}
-        self.http.get_exchange.return_value = xch
         myexch = self.srvr.get_exchange('%2F', 'foo')
         self.assertEqual(myexch['name'], 'foo')
 
@@ -108,7 +102,6 @@ class TestServer(unittest.TestCase):
 
     def test_get_queue_depth(self):
         q = {'messages': 4}
-        self.http.get_queue.return_value = q
         depth = self.srvr.get_queue_depth('/', 'test')
         self.assertEqual(depth, q['messages'])
 
