@@ -91,7 +91,8 @@ class Client(object):
         uri = Client.urls['live_test'] % vhost
 
         try:
-            resp, content = self.http.do_call(uri, 'GET')
+            resp = self.http.do_call(uri, 'GET')
+            print resp.status
         except http.HTTPError as e:
             if e.status == 404:
                 raise APIError("No vhost named '%s'" % vhost)

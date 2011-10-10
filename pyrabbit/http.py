@@ -81,4 +81,4 @@ class HTTPClient(object):
         if resp.status != 200 and resp.status != 204:
             raise HTTPError(resp.status, resp.reason, path)
         else:
-            return resp, self.decode_json_content(content)
+            return self.decode_json_content(content)
