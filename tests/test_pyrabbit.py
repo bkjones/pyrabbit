@@ -77,6 +77,30 @@ class TestClient(unittest.TestCase):
         depth = self.client.get_queue_depth('/', 'test')
         self.assertEqual(depth, q['messages'])
 
+    def test_purge_queue(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.purge_queue('vname', 'qname'))
+
+    def test_create_queue(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.create_queue('qname', 'vname'))
+
+    def test_get_connections(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_connections())
+
+    def test_get_connection(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_connection('cname'))
+
+    def test_get_channels(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_channels())
+
+    def test_get_bindings(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_bindings())
+
 if __name__ == "__main__":
     log = open('test_out.log', 'w')
     unittest.main(testRunner=unittest.TextTestRunner(log))

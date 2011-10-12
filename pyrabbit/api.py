@@ -336,8 +336,7 @@ class Client(object):
         """
         vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['purge_queue'] % (vhost, name)
-        self.http.do_call(path, 'DELETE')
-        return
+        return self.http.do_call(path, 'DELETE')
 
     def create_queue(self,name, vhost, auto_delete=False, durable=True,
                          arguments=None, node='rabbit@localhost'):
