@@ -15,7 +15,7 @@ class PermissionError(Exception):
 def needs_admin_privs(fun):
     @functools.wraps(fun)
     def wrapper(self, *args, **kwargs):
-        if self.is_admin or self.has_admin_rights:
+        if self.has_admin_rights:
             return fun(self, *args, **kwargs)
         else:
             raise PermissionError("Insufficient privs. User '%s'" % self.user)
@@ -49,6 +49,7 @@ class Client(object):
             'bindings_by_source_exch': 'exchanges/%s/%s/bindings/source',
             'bindings_by_dest_exch': 'exchanges/%s/%s/bindings/destination',
             'bindings_on_queue': 'queues/%s/%s/bindings',
+            'bindings_between_exch_queue': 'bindings/%s/e/%s/q/%s',
             'get_from_queue': 'queues/%s/%s/get',
             'publish_to_exchange': 'exchanges/%s/%s/publish',
             }
@@ -119,12 +120,15 @@ class Client(object):
         information you can't get at.
 
         """
-        whoami = self.get_whoami()
-        if whoami.get('administrator'):
-            self.is_admin = True
+        if self.is_admin:
             return True
         else:
-            return False
+            whoami = self.get_whoami()
+            if whoami.get('administrator'):
+                self.is_admin = True
+                return True
+            else:
+                return False
 
     def get_overview(self):
         """
@@ -344,9 +348,12 @@ class Client(object):
         Create a queue. This is just a passthrough to the http client method
         of the same name. The args are identical (see :mod:`pyrabbit.http`)
         """
+        body = json.dumps({"auto_delete": auto_delete,
+                           "durable": durable,
+                           "arguments": arguments or [],
+                           "node": node})
+
         path = Client.urls['queues_by_name'] % (vhost, name)
-        body = json.dumps({"auto_delete": auto_delete,  "durable": durable,
-                                   "arguments": arguments or [], "node": node})
         return self.http.do_call(path,
                                  'PUT',
                                  body,
@@ -379,9 +386,29 @@ class Client(object):
 
     def get_bindings(self):
         """
-        Returns a list of dicts.
+        :returns: list of dicts
 
         """
         path = Client.urls['all_bindings']
         bindings = self.http.do_call(path, 'GET')
         return bindings
+
+    def create_binding(self, vhost, exchange, queue, rt_key, args=None):
+        """
+        Creates a binding between an exchange and a queue on a given vhost.
+
+        :param string vhost: vhost housing the exchange/queue to bind
+        :param string exchange: the target exchange of the binding
+        :param string queue: the queue to bind to the exchange
+        :param string rt_key: the routing key to use for the binding
+        :param list args: extra arguments to associate w/ the binding.
+        :returns: boolean
+        """
+
+        body = json.dumps({'routing_key': rt_key, 'arguments': args or []})
+        path = Client.urls['bindings_between_exch_queue'] % (vhost,
+                                                             exchange,
+                                                             queue)
+        binding = self.http.do_call(path, 'POST', body=body)
+        #binding variable is 'true' or 'false'
+        return binding
