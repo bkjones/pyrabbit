@@ -101,6 +101,18 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_bindings())
 
+    def test_create_binding(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.create_binding('vhost',
+                                                   'exch',
+                                                   'queue',
+                                                   'rt_key'))
+
+    def test_publish(self):
+        self.client.http.do_call = Mock(return_value={'routed': 'true'})
+        self.assertTrue(self.client.publish('vhost', 'xname', 'rt_key',
+                                            'payload'))
+
 if __name__ == "__main__":
     log = open('test_out.log', 'w')
     unittest.main(testRunner=unittest.TextTestRunner(log))
