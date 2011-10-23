@@ -21,9 +21,8 @@ class TestClient(unittest.TestCase):
         self.assertEqual(self.client.host, 'localhost:55672')
 
     def test_server_is_alive_default_vhost(self):
-        Response = namedtuple('Response', ['status'])
-        resp = Response(status=200)
-        self.client.http.do_call = Mock(return_value=resp)
+        response = {'status': 'ok'}
+        self.client.http.do_call = Mock(return_value=response)
         self.assertTrue(self.client.is_alive())
 
     def test_get_vhosts_200(self):
@@ -135,16 +134,15 @@ class TestLiveServer(unittest.TestCase):
         """
         This does a 'round trip' test, which consists of the following steps:
 
-        1. Create a vhost (TODO: Getting HTTP 415 on this call, currently
-            commented out 'til I figure that out)
-        2. Create an exchange in that vhost
-        3. Create a queue
-        4. Create a binding between the queue and exchange
-        5. Publish a message to the exchange that makes it to the queue
-        6. Grab that message from the queue (verify it's the same message)
-        7. Delete the queue
-        8. Delete the exchange
-        9. Delete the vhost
+        * Create a vhost, and verify creation
+        * Give 'guest' all perms on vhost
+        * Create an exchange in that vhost, verify creation
+        * Create a queue
+        * Create a binding between the queue and exchange
+        * Publish a message to the exchange that makes it to the queue
+        * Grab that message from the queue (verify it's the same message)
+        * Delete the exchange
+        * Delete the vhost
         """
 
         # create a vhost, verify creation, and grant all perms to 'guest'.

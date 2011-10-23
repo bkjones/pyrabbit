@@ -102,7 +102,7 @@ class Client(object):
                 raise APIError("No vhost named '%s'" % vhost)
             raise
 
-        if resp.status == 200:
+        if resp['status'] == 'ok':
             return True
         else:
             return False
@@ -111,6 +111,11 @@ class Client(object):
         """
         A convenience function used in the event that you need to confirm that
         the broker thinks you are who you think you are.
+
+        :returns dict whoami: Dict structure contains:
+            * administrator: whether the user is has admin privileges
+            * name: user name
+            * auth_backend: backend used to determine admin rights
         """
         path = Client.urls['whoami']
         whoami  = self.http.do_call(path, 'GET')
@@ -122,6 +127,8 @@ class Client(object):
         Determine if the creds passed in for authentication have admin
         rights to RabbitMQ data. If not, then there's a decent amount of
         information you can't get at.
+
+        :returns bool is_admin: True if self.user has admin rights.
 
         """
         if self.is_admin:
@@ -172,6 +179,30 @@ class Client(object):
         """
         vhosts = self.http.do_call(Client.urls['all_vhosts'], 'GET')
         return vhosts
+
+    def get_vhost_names(self):
+        """
+        A convenience function for getting back only the vhost names instead of
+        the larger vhost dicts.
+
+        :returns list vhost_names: A list of just the vhost names.
+        """
+        vhosts = self.get_all_vhosts()
+        vhost_names = [i['name'] for i in vhosts]
+        return vhost_names
+
+    def get_vhost(self, vname):
+        """
+        Returns the attributes of a single named vhost in a dict.
+
+        :param string vname: Name of the vhost to get.
+        :returns dict vhost: Attribute dict for the named vhost
+
+        """
+
+        path = Client.urls['vhosts_by_name'] % vname
+        vhost = self.http.do_call(path, 'GET', headers=Client.json_headers)
+        return vhost
 
     def create_vhost(self, vname):
         """
@@ -287,9 +318,8 @@ class Client(object):
         """
 
         path = Client.urls['exchange_by_name'] % (vhost, name)
-        #base_body = {"type": type, "auto_delete": auto_delete,
-        #                   "durable": durable, "internal": internal}
-        base_body = {"type": type, "durable": durable}
+        base_body = {"type": type, "auto_delete": auto_delete,
+                           "durable": durable, "internal": internal}
         if arguments:
             base_body['arguments'] = arguments
 
@@ -456,6 +486,19 @@ class Client(object):
                                  'PUT',
                                  body,
                                  headers=Client.json_headers)
+
+    def delete_queue(self, vhost, qname):
+        """
+        Deletes the named queue from the named vhost.
+
+        :param string vhost: Vhost housing the queue to be deleted.
+        :param string qname: Name of the queue to delete.
+
+        Note that if you just want to delete the messages from a queue, you
+        should use purge_queue instead of deleting/recreating a queue.
+        """
+        path = Client.urls['queues_by_name'] % (vhost, qname)
+        return self.http.do_call(path, 'DELETE', headers=Client.json_headers)
 
     def get_messages(self, vhost, qname, count=1,
                      requeue=False, truncate=None, encoding='auto'):
