@@ -347,8 +347,7 @@ class Client(object):
                            'payload_encoding': payload_enc,
                            'properties': properties or {}})
         result = self.http.do_call(path, 'POST', body)
-        status = True if result['routed'] == 'true' else False
-        return status
+        return result['routed']
 
     def delete_exchange(self, vhost, name):
         """

@@ -31,20 +31,32 @@ great w/ Python 3!
 
 Here's a quick demo::
 
-    newhotness:pyrabbit bjones$ python3.2
-    Python 3.2 (r32:88445, Mar 29 2011, 20:18:33) 
-    [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
-    Type "help", "copyright", "credits" or "license" for more information.
+    >>> from pyrabbit.api import Client
+    >>> cl = Client('localhost:55672', 'guest', 'guest')
+    >>> cl.is_alive()
+    True
+    >>> cl.create_vhost('example_vhost')
+    True
+    >>> [i['name'] for i in cl.get_all_vhosts()]
+    [u'/', u'diabolica', u'example_vhost', u'testvhost']
+    >>> cl.get_vhost_names()
+    [u'/', u'diabolica', u'example_vhost', u'testvhost']
+    >>> cl.set_vhost_permissions('example_vhost', 'guest', '.*', '.*', '.*')
+    True
+    >>> cl.create_exchange('example_vhost', 'example_exchange', 'direct')
+    True
+    >>> cl.get_exchange('example_vhost', 'example_exchange')
+    {u'name': u'example_exchange', u'durable': True, u'vhost': u'example_vhost', u'internal': False, u'arguments': {}, u'type': u'direct', u'auto_delete': False}
+    >>> cl.create_queue('example_queue', 'example_vhost')
+    True
+    >>> cl.create_binding('example_vhost', 'example_exchange', 'example_queue', 'my.rtkey')
+    True
+    >>> cl.publish('example_vhost', 'example_exchange', 'my.rtkey', 'example message payload')
+    True
+    >>> cl.get_messages('example_vhost', 'example_queue')
+    [{u'payload': u'example message payload', u'exchange': u'example_exchange', u'routing_key': u'my.rtkey', u'payload_bytes': 23, u'message_count': 2, u'payload_encoding': u'string', u'redelivered': False, u'properties': []}]
+    >>> cl.delete_vhost('example_vhost')
+    True
+    >>> [i['name'] for i in cl.get_all_vhosts()]
+    [u'/', u'diabolica', u'testvhost']
 
-    >>> from pyrabbit import api
-    >>> srvr = api.Server('localhost:55672', 'guest', 'guest')
-    >>> for q in srvr.get_queues():
-    ...     '{0:<40s}{1:>15d}'.format(q['name'], q['messages'])
-    ... 
-    'TestQ                                                 1'
-    'aliveness-test                                        0'
-    'testq                                                 0'
-    'test123                                               0'
-    >>> testq = srvr.get_queue('/', 'TestQ')
-    >>> testq
-    {'node': 'rabbit@newhotness', 'consumer_details': [], 'name': 'TestQ', 'consumers': 0, 'backing_queue_status': {'q1': 0, 'q3': 0, 'q2': 0, 'q4': 1, 'avg_ack_egress_rate': 0.0, 'ram_msg_count': 1, 'ram_ack_count': 0, 'outstanding_txns': 0, 'len': 1, 'persistent_count': 1, 'target_ram_count': 'infinity', 'next_seq_id': 1, 'delta': ['delta', 'undefined', 0, 'undefined'], 'pending_acks': 0, 'avg_ack_ingress_rate': 0.0, 'avg_egress_rate': 0.0, 'avg_ingress_rate': 2.50361099907801e-05, 'ram_index_count': 0}, 'pid': '<rabbit@newhotness.3.229.0>', 'durable': True, 'messages': 1, 'idle_since': '2011-9-21 8:58:32', 'vhost': '/', 'owner_pid': 'none', 'auto_delete': False, 'memory': 14680, 'exclusive_consumer_tag': '', 'exclusive_consumer_pid': '', 'messages_unacknowledged': 0, 'messages_ready': 1, 'arguments': {}}
