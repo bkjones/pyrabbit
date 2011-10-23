@@ -10,6 +10,9 @@ setup(name='pyrabbit',
       description="A Pythonic interface to the RabbitMQ Management HTTP API", 
 
       long_description="""\
+
+The main documentation lives at http://pyrabbit.readthedocs.org
+
 There's no way to easily write programs against RabbitMQs management API
 without resorting to some messy urllib boilerplate code involving HTTP 
 Basic authentication and parsing the JSON responses, etc. Pyrabbit 
