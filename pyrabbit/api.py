@@ -52,7 +52,11 @@ class Client(object):
             'bindings_between_exch_queue': 'bindings/%s/e/%s/q/%s',
             'get_from_queue': 'queues/%s/%s/get',
             'publish_to_exchange': 'exchanges/%s/%s/publish',
+            'vhosts_by_name': 'vhosts/%s',
+            'vhost_permissions': 'permissions/%s/%s'
             }
+
+    json_headers = {"content-type": "application/json"}
 
     def __init__(self, host, user, passwd):
         """
@@ -157,6 +161,9 @@ class Client(object):
         users = self.http.do_call(Client.urls['all_users'], 'GET')
         return users
 
+    ################################################
+    ###         VHOSTS
+    ################################################
     def get_all_vhosts(self):
         """
         :returns: a list of dicts, each dict representing a vhost
@@ -166,9 +173,55 @@ class Client(object):
         vhosts = self.http.do_call(Client.urls['all_vhosts'], 'GET')
         return vhosts
 
-    ##############################
-    # EXCHANGES
-    ##############################
+    def create_vhost(self, vname):
+        """
+        Creates a vhost on the server to house exchanges.
+
+        :param string vname: The name to give to the vhost on the server
+        :returns: boolean
+        """
+        path = Client.urls['vhosts_by_name'] % vname
+        return self.http.do_call(path, 'PUT',
+                                 headers=Client.json_headers)
+
+    def delete_vhost(self, vname):
+        """
+        Deletes a vhost from the server.
+        TODO: At time of writing, the behavior when you try to delete a vhost
+        that has exchanges in it is not known.
+
+        :param string vname: Name of the vhost to delete from the server.
+        """
+        path = Client.urls['vhosts_by_name'] % vname
+        return self.http.do_call(path, 'DELETE')
+
+    def set_vhost_permissions(self, vname, username, config, rd, wr):
+        """
+        Set permissions for a given username on a given vhost. Both
+        must already exist.
+
+        :param string vname: Name of the vhost to set perms on.
+        :param string username: User to set permissions for.
+        :param string config: Permission pattern for configuration operations
+            for this user in this vhost.
+        :param string rd: Permission pattern for read operations for this user
+            in this vhost
+        :param string wr: Permission pattern for write operations for this user
+            in this vhost.
+
+        Permission patterns are regex strings. If you're unfamiliar with this,
+        you should definitely check out this section of the RabbitMQ docs:
+
+        http://www.rabbitmq.com/admin-guide.html#access-control
+        """
+        body = json.dumps({"configure": config, "read": rd, "write": wr})
+        path = Client.urls['vhost_permissions'] % (vname, username)
+        return self.http.do_call(path, 'PUT', body,
+                                 headers=Client.json_headers)
+
+    ###############################################
+    ##           EXCHANGES
+    ###############################################
     def get_exchanges(self, vhost=None):
         """
         :returns: A list of dicts
@@ -234,12 +287,15 @@ class Client(object):
         """
 
         path = Client.urls['exchange_by_name'] % (vhost, name)
-        body = json.dumps({"type": type, "auto_delete": auto_delete,
-                           "durable": durable, "internal": internal,
-                           "arguments": arguments or []})
+        #base_body = {"type": type, "auto_delete": auto_delete,
+        #                   "durable": durable, "internal": internal}
+        base_body = {"type": type, "durable": durable}
+        if arguments:
+            base_body['arguments'] = arguments
 
+        body = json.dumps(base_body)
         self.http.do_call(path, 'PUT', body,
-                          headers={'content-type': 'application/json'})
+                          headers=Client.json_headers)
         return True
 
     def publish(self, vhost, xname, rt_key, payload, payload_enc='string',
@@ -278,9 +334,9 @@ class Client(object):
         self.http.do_call(path, 'DELETE')
         return True
 
-    #############################
-    # QUEUES
-    #############################
+    #############################################
+    ##              QUEUES
+    #############################################
     def get_queues(self, vhost=None):
         """
         Get all queues, or all queues in a vhost if vhost is not None.
@@ -364,22 +420,69 @@ class Client(object):
         path = Client.urls['purge_queue'] % (vhost, name)
         return self.http.do_call(path, 'DELETE')
 
-    def create_queue(self,name, vhost, auto_delete=False, durable=True,
-                         arguments=None, node='rabbit@localhost'):
+    def create_queue(self,name, vhost, auto_delete=None, durable=None,
+                         arguments=None, node=None):
         """
-        Create a queue. This is just a passthrough to the http client method
-        of the same name. The args are identical (see :mod:`pyrabbit.http`)
+        Create a queue. The API documentation specifies that all of the body
+        elements are optional, so this method only requires arguments needed
+        to form the URI
+
+        :param string name: The name of the queue
+        :param string vhost: The vhost to create the queue in.
+        :param string auto_delete: Whether to destroy the queue when the
+            consumer count is zero (after having been non-zero at some point)
+        :param string durable: Whether the queue should exist after a restart
+        :param string arguments: Arguments for the queue declaration.
+        :param string node: The erlang/rabbit node name to create the queue on.
+
+        More on these operations can be found at:
+        http://www.rabbitmq.com/amqp-0-9-1-reference.html
+
         """
-        body = json.dumps({"auto_delete": auto_delete,
-                           "durable": durable,
-                           "arguments": arguments or [],
-                           "node": node})
+
+        if auto_delete or durable or arguments or node:
+            base_body ={"auto_delete": auto_delete,
+                       "durable": durable,
+                       "node": node}
+            if arguments:
+                base_body['arguments'] = arguments
+        else:
+            base_body = {}
+
+        body = json.dumps(base_body)
 
         path = Client.urls['queues_by_name'] % (vhost, name)
         return self.http.do_call(path,
                                  'PUT',
                                  body,
-                                 headers={'content-type': 'application/json'})
+                                 headers=Client.json_headers)
+
+    def get_messages(self, vhost, qname, count=1,
+                     requeue=False, truncate=None, encoding='auto'):
+        """
+        Gets <count> messages from the queue.
+
+        :param string vhost: Name of vhost containing the queue
+        :param string qname: Name of the queue to consume from
+        :param int count: Number of messages to get.
+        :param bool requeue: Whether to requeue the message after getting it.
+            This will cause the 'redelivered' flag to be set in the message on
+            the queue.
+        :param int truncate: The length, in bytes, beyond which the server will
+            truncate the message before returning it.
+        :returns: list of dicts. messages[msg-index]['payload'] will contain
+                the message body.
+        """
+
+        base_body = {'count': count, 'requeue': requeue, 'encoding': encoding}
+        if truncate:
+            base_body['truncate'] = truncate
+        body = json.dumps(base_body)
+
+        path = Client.urls['get_from_queue'] % (vhost, qname)
+        messages = self.http.do_call(path, 'POST', body,
+                                     headers=Client.json_headers)
+        return messages
 
     #########################################
     # CONNS/CHANS & BINDINGS
@@ -415,7 +518,7 @@ class Client(object):
         bindings = self.http.do_call(path, 'GET')
         return bindings
 
-    def create_binding(self, vhost, exchange, queue, rt_key, args=None):
+    def create_binding(self, vhost, exchange, queue, rt_key=None, args=None):
         """
         Creates a binding between an exchange and a queue on a given vhost.
 
@@ -431,5 +534,7 @@ class Client(object):
         path = Client.urls['bindings_between_exch_queue'] % (vhost,
                                                              exchange,
                                                              queue)
-        binding = self.http.do_call(path, 'POST', body=body)
+        binding = self.http.do_call(path, 'POST', body=body,
+                                    headers=Client.json_headers)
         return binding
+

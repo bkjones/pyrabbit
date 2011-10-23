@@ -113,6 +113,76 @@ class TestClient(unittest.TestCase):
         self.assertTrue(self.client.publish('vhost', 'xname', 'rt_key',
                                             'payload'))
 
+    def test_create_vhost(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.create_vhost('vname'))
+
+    def test_delete_vhost(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.delete_vhost('vname'))
+
+class TestLiveServer(unittest.TestCase):
+    def setUp(self):
+        self.rabbit = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
+        self.vhost_name = 'pyrabbit_test_vhost'
+        self.exchange_name = 'pyrabbit_test_exchange'
+        self.queue_name = 'pyrabbit_test_queue'
+        self.rt_key = 'pyrabbit-roundtrip'
+        self.payload = 'pyrabbit test message payload'
+        self.user = 'guest'
+
+    def test_round_trip(self):
+        """
+        This does a 'round trip' test, which consists of the following steps:
+
+        1. Create a vhost (TODO: Getting HTTP 415 on this call, currently
+            commented out 'til I figure that out)
+        2. Create an exchange in that vhost
+        3. Create a queue
+        4. Create a binding between the queue and exchange
+        5. Publish a message to the exchange that makes it to the queue
+        6. Grab that message from the queue (verify it's the same message)
+        7. Delete the queue
+        8. Delete the exchange
+        9. Delete the vhost
+        """
+
+        # create a vhost, verify creation, and grant all perms to 'guest'.
+        self.rabbit.create_vhost(self.vhost_name)
+        vhosts = [i['name'] for i in self.rabbit.get_all_vhosts()]
+        self.assertIn(self.vhost_name, vhosts)
+        self.rabbit.set_vhost_permissions(self.vhost_name, self.user,
+                                          '.*', '.*', '.*')
+
+        # create an exchange, and verify creation.
+        self.rabbit.create_exchange(self.vhost_name,
+                                    self.exchange_name,
+                                    'direct')
+        self.assertEqual(self.exchange_name,
+                         self.rabbit.get_exchange(self.vhost_name,
+                                                  self.exchange_name)['name'])
+
+        # create a queue and verify it was created
+        self.rabbit.create_queue(self.queue_name, self.vhost_name)
+        self.assertEqual(self.queue_name,
+                        self.rabbit.get_queue(self.vhost_name,
+                                              self.queue_name)['name'])
+
+        # bind the queue and exchange
+        self.rabbit.create_binding(self.vhost_name, self.exchange_name,
+                                   self.queue_name, self.rt_key)
+
+        # publish a message, and verify by get'ing it back.
+        self.rabbit.publish(self.vhost_name, self.exchange_name, self.rt_key,
+                            self.payload)
+        messages = self.rabbit.get_messages(self.vhost_name, self.queue_name)
+        self.assertEqual(messages[0]['payload'], self.payload)
+
+        # Clean up.
+        self.rabbit.delete_exchange(self.vhost_name, self.exchange_name)
+        self.rabbit.delete_vhost(self.vhost_name)
+
+
 if __name__ == "__main__":
     log = open('test_out.log', 'w')
     unittest.main(testRunner=unittest.TextTestRunner(log))

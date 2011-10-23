@@ -9,11 +9,24 @@ class HTTPError(Exception):
     HTTP error of some kind (404, 500, etc).
 
     """
-    def __init__(self, status=None, reason=None, path=None):
+    def __init__(self, content, status=None, reason=None, path=None, body=None):
+        #HTTP status code
         self.status = status
+        # human readable HTTP status
         self.reason = reason
         self.path = path
-        self.output = "%s - %s (%s)" % (self.status, self.reason, self.path)
+        self.body = body
+
+        # Actual, useful reason for failure returned by RabbitMQ
+        self.detail=None
+        if content.get('reason'):
+            self.detail = content['reason']
+
+        self.output = "%s - %s (%s) (%s) (%s)" % (self.status,
+                                             self.reason,
+                                             self.detail,
+                                             self.path,
+                                             repr(self.body))
 
     def __str__(self):
         return self.output
@@ -72,13 +85,21 @@ class HTTPClient(object):
         try:
             resp, content = self.client.request(url,
                                                 reqtype,
-                                                body or '',
-                                                headers or {})
+                                                body,
+                                                headers)
         except Exception as out:
             # net-related exception types from httplib2 are unpredictable.
             raise NetworkError("Error: %s %s" % (type(out), out))
 
-        if resp.status != 200 and resp.status != 204:
-            raise HTTPError(resp.status, resp.reason, path)
+        # RabbitMQ will return content even on certain failures.
+        if content:
+            content = self.decode_json_content(content)
+
+        # 'success' HTTP status codes are 200-206
+        if resp.status < 200 or resp.status > 206:
+            raise HTTPError(content, resp.status, resp.reason, path, body)
         else:
-            return self.decode_json_content(content)
+            if content:
+                return content
+            else:
+                return True
