@@ -1,6 +1,13 @@
+"""
+The api module houses the Client class, which provides the main interface
+developers will use to interact with RabbitMQ. It also contains errors and
+decorators used by the class.
+"""
+
 from . import http
 import functools
 import json
+
 
 class APIError(Exception):
     """Denotes a failure due to unexpected or invalid
@@ -9,12 +16,29 @@ class APIError(Exception):
     """
     pass
 
+
 class PermissionError(Exception):
+    """
+    Raised if the operation requires admin permissions, and the user used to
+    instantiate the Client class does not have admin privileges.
+    """
     pass
 
+
 def needs_admin_privs(fun):
+    """
+    A decorator that can be added to any of the Client methods in order to
+    indicate that admin privileges should be checked for before issuing an
+    HTTP call (if possible - if Client.is_admin isn't set, an HTTP call is
+    made to find out).
+
+    """
     @functools.wraps(fun)
     def wrapper(self, *args, **kwargs):
+        """
+        This is the function that runs in place of the one being decorated.
+
+        """
         if self.has_admin_rights:
             return fun(self, *args, **kwargs)
         else:
@@ -97,8 +121,8 @@ class Client(object):
 
         try:
             resp = self.http.do_call(uri, 'GET')
-        except http.HTTPError as e:
-            if e.status == 404:
+        except http.HTTPError as err:
+            if err.status == 404:
                 raise APIError("No vhost named '%s'" % vhost)
             raise
 
@@ -118,7 +142,7 @@ class Client(object):
             * auth_backend: backend used to determine admin rights
         """
         path = Client.urls['whoami']
-        whoami  = self.http.do_call(path, 'GET')
+        whoami = self.http.do_call(path, 'GET')
         return whoami
 
     @property
@@ -217,9 +241,8 @@ class Client(object):
 
     def delete_vhost(self, vname):
         """
-        Deletes a vhost from the server.
-        TODO: At time of writing, the behavior when you try to delete a vhost
-        that has exchanges in it is not known.
+        Deletes a vhost from the server. Note that this also deletes any
+        exchanges or queues that belong to this vhost.
 
         :param string vname: Name of the vhost to delete from the server.
         """
@@ -284,7 +307,7 @@ class Client(object):
     def create_exchange(self,
                         vhost,
                         name,
-                        type,
+                        xtype,
                         auto_delete=False,
                         durable=True,
                         internal=False,
@@ -318,7 +341,7 @@ class Client(object):
         """
 
         path = Client.urls['exchange_by_name'] % (vhost, name)
-        base_body = {"type": type, "auto_delete": auto_delete,
+        base_body = {"type": xtype, "auto_delete": auto_delete,
                            "durable": durable, "internal": internal}
         if arguments:
             base_body['arguments'] = arguments
@@ -371,8 +394,9 @@ class Client(object):
         Get all queues, or all queues in a vhost if vhost is not None.
         Returns a list.
 
-        :param string vhost: The virtual host to list queues for. If This is None
-                   (the default), all queues for the broker instance are returned.
+        :param string vhost: The virtual host to list queues for. If This is
+                    None (the default), all queues for the broker instance
+                    are returned.
         :returns: A list of dicts, each representing a queue.
         :rtype: list of dicts
 
@@ -399,14 +423,14 @@ class Client(object):
         """
         vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['queues_by_name'] % (vhost, name)
-        q = self.http.do_call(path, 'GET')
-        return q
+        queue = self.http.do_call(path, 'GET')
+        return queue
 
     def get_queue_depth(self, vhost, name):
         """
         Get the number of messages currently in a queue. This is a convenience
-         function that just calls :meth:`Client.get_queue` and pulls out/returns the 'messages'
-         field from the dictionary it returns.
+         function that just calls :meth:`Client.get_queue` and pulls
+         out/returns the 'messages' field from the dictionary it returns.
 
         :param string vhost: The vhost of the queue being queried.
         :param string name: The name of the queue to query.
@@ -416,8 +440,8 @@ class Client(object):
         """
         vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['queues_by_name'] % (vhost, name)
-        q = self.http.do_call(path, 'GET')
-        depth = q['messages']
+        queue = self.http.do_call(path, 'GET')
+        depth = queue['messages']
         return depth
 
     def purge_queues(self, queues):
@@ -429,7 +453,7 @@ class Client(object):
 
         """
         for name, vhost in queues:
-            vhost = '%2F' if vhost =='/' else vhost
+            vhost = '%2F' if vhost == '/' else vhost
             path = Client.urls['purge_queue'] % (vhost, name)
             self.http.do_call(path, 'DELETE')
         return True
@@ -449,7 +473,7 @@ class Client(object):
         path = Client.urls['purge_queue'] % (vhost, name)
         return self.http.do_call(path, 'DELETE')
 
-    def create_queue(self,name, vhost, auto_delete=None, durable=None,
+    def create_queue(self, name, vhost, auto_delete=None, durable=None,
                          arguments=None, node=None):
         """
         Create a queue. The API documentation specifies that all of the body
@@ -470,7 +494,7 @@ class Client(object):
         """
 
         if auto_delete or durable or arguments or node:
-            base_body ={"auto_delete": auto_delete,
+            base_body = {"auto_delete": auto_delete,
                        "durable": durable,
                        "node": node}
             if arguments:
@@ -538,6 +562,13 @@ class Client(object):
         return conns
 
     def get_connection(self, name):
+        """
+        Get a connection by name. To get the names, use get_connections.
+
+        :param string name: Name of connection to get
+        :returns dict conn: A connection attribute dictionary.
+
+        """
         path = Client.urls['connections_by_name'] % name
         conn = self.http.do_call(path, 'GET')
         return conn
@@ -579,4 +610,3 @@ class Client(object):
         binding = self.http.do_call(path, 'POST', body=body,
                                     headers=Client.json_headers)
         return binding
-
