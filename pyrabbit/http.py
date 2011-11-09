@@ -19,7 +19,7 @@ class HTTPError(Exception):
 
         # Actual, useful reason for failure returned by RabbitMQ
         self.detail=None
-        if content.get('reason'):
+        if callable(getattr(content, 'get', None)) and content.get('reason'):
             self.detail = content['reason']
 
         self.output = "%s - %s (%s) (%s) (%s)" % (self.status,
