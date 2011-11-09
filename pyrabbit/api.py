@@ -402,7 +402,7 @@ class Client(object):
 
         """
         if vhost:
-            path = Client.urls['all_queues'] % vhost
+            path = Client.urls['queues_by_vhost'] % vhost
         else:
             path = Client.urls['all_queues']
 
