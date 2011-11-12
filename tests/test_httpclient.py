@@ -21,3 +21,4 @@ class TestHTTPClient(unittest.TestCase):
     def test_client_init(self):
         c = http.HTTPClient('localhost:55672', 'guest', 'guest')
         self.assertIsInstance(c, http.HTTPClient)
+

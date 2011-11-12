@@ -16,6 +16,9 @@ class TestClient(unittest.TestCase):
     def setUp(self):
         self.client = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
 
+    def tearDown(self):
+        del self.client
+
     def test_server_init_200(self):
         self.assertIsInstance(self.client, pyrabbit.api.Client)
         self.assertEqual(self.client.host, 'localhost:55672')
@@ -23,7 +26,9 @@ class TestClient(unittest.TestCase):
     def test_server_is_alive_default_vhost(self):
         response = {'status': 'ok'}
         self.client.http.do_call = Mock(return_value=response)
-        self.assertTrue(self.client.is_alive())
+        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
+            mock_rights.__get__ = Mock(return_value=True)
+            self.assertTrue(self.client.is_alive())
 
     def test_get_vhosts_200(self):
         self.client.http.do_call = Mock(return_value=[])
@@ -119,6 +124,20 @@ class TestClient(unittest.TestCase):
     def test_delete_vhost(self):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.delete_vhost('vname'))
+
+    def test_is_alive_withprivs(self):
+        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
+            mock_rights.__get__ = Mock(return_value=True)
+            self.assertTrue(self.client.is_alive())
+
+    def test_is_alive_noprivs(self):
+        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
+            mock_rights.__get__ = Mock(return_value=False)
+            self.assertRaises(pyrabbit.api.PermissionError, self.client.is_alive)
+
+
+
+
 
 class TestLiveServer(unittest.TestCase):
     def setUp(self):

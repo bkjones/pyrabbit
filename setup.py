@@ -1,22 +1,22 @@
 from setuptools import setup, find_packages
-import pyrabbit
+from pyrabbit import __version__
 
 # To update version number, edit:
 # pyrabbit/__init__.py
-version = ".".join(str(x) for x in pyrabbit.version)
+version = ".".join(str(x) for x in __version__)
 
 setup(name='pyrabbit',
       version=version,
-      description="A Pythonic interface to the RabbitMQ Management HTTP API", 
+      description="A Pythonic interface to the RabbitMQ Management HTTP API",
 
       long_description="""\
 
 The main documentation lives at http://pyrabbit.readthedocs.org
 
 There's no way to easily write programs against RabbitMQs management API
-without resorting to some messy urllib boilerplate code involving HTTP 
-Basic authentication and parsing the JSON responses, etc. Pyrabbit 
-abstracts this away & provides an intuitive, easy way to work with the 
+without resorting to some messy urllib boilerplate code involving HTTP
+Basic authentication and parsing the JSON responses, etc. Pyrabbit
+abstracts this away & provides an intuitive, easy way to work with the
 data that lives inside of RabbitMQ, and manipulate the resources there.""",
 
       classifiers=[

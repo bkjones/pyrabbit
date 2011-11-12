@@ -105,6 +105,7 @@ class Client(object):
         self.is_admin = None
         return
 
+    @needs_admin_privs
     def is_alive(self, vhost='%2F'):
         """
         Uses the aliveness-test API call to determine if the
