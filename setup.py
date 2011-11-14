@@ -1,9 +1,6 @@
 from setuptools import setup, find_packages
-from pyrabbit import __version__
 
-# To update version number, edit:
-# pyrabbit/__init__.py
-version = ".".join(str(x) for x in __version__)
+version = '0.9.5'
 
 setup(name='pyrabbit',
       version=version,
