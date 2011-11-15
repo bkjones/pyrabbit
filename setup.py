@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.9.5'
+version = '0.9.7'
 
 setup(name='pyrabbit',
       version=version,
