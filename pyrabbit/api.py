@@ -160,11 +160,11 @@ class Client(object):
             return True
         else:
             whoami = self.get_whoami()
-            if whoami.get('administrator'):
-                self.is_admin = True
-                return True
-            else:
+            tag    = whoami.get('tags', False)
+
+            if not tag or tag != 'administrator':
                 return False
+            return True
 
     def get_overview(self):
         """
