@@ -10,4 +10,7 @@ This module isn't on pypi because the name was taken by a project that, by all
 appearances, is either dead or bogus, but the powers that be don't think it proper 
 to release the name for me to use, so you'll have to get it here :/
 
+PyRabbit is on PyPI, which makes it installable using pip or easy_install.
+
 See the documentation at http://pyrabbit.readthedocs.org
+
