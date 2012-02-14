@@ -73,7 +73,7 @@ class TestClient(unittest.TestCase):
     def test_get_users_withprivs(self):
         with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
             mock_rights.__get__ = Mock(return_value=True)
-            self.assertTrue(self.client.get_users)
+            self.assertTrue(self.client.get_users())
 
     def test_get_queue_depth(self):
         q = {'messages': 4}

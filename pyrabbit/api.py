@@ -156,15 +156,11 @@ class Client(object):
         :returns bool is_admin: True if self.user has admin rights.
 
         """
-        if self.is_admin:
-            return True
-        else:
+        if self.is_admin is None:
             whoami = self.get_whoami()
-            tag    = whoami.get('tags', False)
+            self.is_admin = whoami.get('administrator', False)
 
-            if not tag or tag != 'administrator':
-                return False
-            return True
+        return self.is_admin
 
     def get_overview(self):
         """

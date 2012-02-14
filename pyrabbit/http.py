@@ -66,7 +66,11 @@ class HTTPClient(object):
 
         """
         str_ct = content.decode('utf8')
-        py_ct = json.loads(str_ct)
+        try:
+            py_ct = json.loads(str_ct)
+        except ValueError as out:
+            print("%s - (%s) (%s)" % (out, str_ct, type(str_ct)))
+            return None
         return py_ct
 
     def do_call(self, path, reqtype, body=None, headers=None):
