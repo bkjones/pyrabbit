@@ -221,6 +221,7 @@ class Client(object):
 
         """
 
+        vname = '%2F' if vname == '/' else vname
         path = Client.urls['vhosts_by_name'] % vname
         vhost = self.http.do_call(path, 'GET', headers=Client.json_headers)
         return vhost
@@ -232,6 +233,7 @@ class Client(object):
         :param string vname: The name to give to the vhost on the server
         :returns: boolean
         """
+        vname = '%2F' if vname == '/' else vname
         path = Client.urls['vhosts_by_name'] % vname
         return self.http.do_call(path, 'PUT',
                                  headers=Client.json_headers)
@@ -243,6 +245,7 @@ class Client(object):
 
         :param string vname: Name of the vhost to delete from the server.
         """
+        vname = '%2F' if vname == '/' else vname
         path = Client.urls['vhosts_by_name'] % vname
         return self.http.do_call(path, 'DELETE')
 
@@ -265,6 +268,7 @@ class Client(object):
 
         http://www.rabbitmq.com/admin-guide.html#access-control
         """
+        vname = '%2F' if vname == '/' else vname
         body = json.dumps({"configure": config, "read": rd, "write": wr})
         path = Client.urls['vhost_permissions'] % (vname, username)
         return self.http.do_call(path, 'PUT', body,
@@ -281,6 +285,7 @@ class Client(object):
 
         """
         if vhost:
+            vhost = '%2F' if vhost == '/' else vhost
             path = Client.urls['exchanges_by_vhost'] % vhost
         else:
             path = Client.urls['all_exchanges']
@@ -297,6 +302,7 @@ class Client(object):
         :returns: dict
 
         """
+        vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['exchange_by_name'] % (vhost, name)
         exch = self.http.do_call(path, 'GET')
         return exch
@@ -337,11 +343,11 @@ class Client(object):
 
         """
 
+        vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['exchange_by_name'] % (vhost, name)
         base_body = {"type": xtype, "auto_delete": auto_delete,
-                           "durable": durable, "internal": internal}
-        if arguments:
-            base_body['arguments'] = arguments
+                     "durable": durable, "internal": internal,
+                     "arguments": arguments or list()}
 
         body = json.dumps(base_body)
         self.http.do_call(path, 'PUT', body,
@@ -362,6 +368,7 @@ class Client(object):
         :param dict properties: a dict of message properties
         :returns: boolean indicating success or failure.
         """
+        vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['publish_to_exchange'] % (vhost, xname)
         body = json.dumps({'routing_key': rt_key, 'payload': payload,
                            'payload_encoding': payload_enc,
@@ -379,6 +386,7 @@ class Client(object):
         :param string name: The name of the exchange to delete.
         :returns bool: True on success.
         """
+        vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['exchange_by_name'] % (vhost, name)
         self.http.do_call(path, 'DELETE')
         return True
@@ -399,12 +407,13 @@ class Client(object):
 
         """
         if vhost:
+            vhost = '%2F' if vhost == '/' else vhost
             path = Client.urls['queues_by_vhost'] % vhost
         else:
             path = Client.urls['all_queues']
 
         queues = self.http.do_call(path, 'GET')
-        return queues
+        return queues or list()
 
     def get_queue(self, vhost, name):
         """
@@ -498,6 +507,7 @@ class Client(object):
 
         """
 
+        vhost = '%2F' if vhost == '/' else vhost
         if auto_delete or durable or arguments or node:
             base_body = {"auto_delete": auto_delete,
                        "durable": durable,
@@ -525,6 +535,7 @@ class Client(object):
         Note that if you just want to delete the messages from a queue, you
         should use purge_queue instead of deleting/recreating a queue.
         """
+        vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['queues_by_name'] % (vhost, qname)
         return self.http.do_call(path, 'DELETE', headers=Client.json_headers)
 
@@ -545,6 +556,7 @@ class Client(object):
                 the message body.
         """
 
+        vhost = '%2F' if vhost == '/' else vhost
         base_body = {'count': count, 'requeue': requeue, 'encoding': encoding}
         if truncate:
             base_body['truncate'] = truncate
@@ -596,6 +608,29 @@ class Client(object):
         bindings = self.http.do_call(path, 'GET')
         return bindings
 
+    def get_queue_bindings(self, vhost, qname):
+        """
+        Return a list of dicts, one dict per binding. The dict format coming
+        from RabbitMQ for queue named 'testq' is:
+
+        {"source":"sourceExch","vhost":"/","destination":"testq",
+         "destination_type":"queue","routing_key":"*.*","arguments":{},
+         "properties_key":"%2A.%2A"}
+        """
+        vhost = '%2F' if vhost == '/' else vhost
+        path = Client.urls['bindings_on_queue'] % (vhost, qname)
+        bindings = self.http.do_call(path, 'GET')
+        return bindings
+
+    def get_bindings_from_exchange(self, vhost, exch):
+        pass
+
+    def get_bindings_to_exchange(self, vhost, exch):
+        pass
+
+    def get_bindings_between_exch_and_queue(self, vhost, exch, queue):
+        pass
+
     def create_binding(self, vhost, exchange, queue, rt_key=None, args=None):
         """
         Creates a binding between an exchange and a queue on a given vhost.
@@ -608,6 +643,7 @@ class Client(object):
         :returns: boolean
         """
 
+        vhost = '%2F' if vhost == '/' else vhost
         body = json.dumps({'routing_key': rt_key, 'arguments': args or []})
         path = Client.urls['bindings_between_exch_queue'] % (vhost,
                                                              exchange,

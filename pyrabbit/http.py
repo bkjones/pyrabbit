@@ -16,10 +16,11 @@ class HTTPError(Exception):
         self.reason = reason
         self.path = path
         self.body = body
+        self.detail = None
 
         # Actual, useful reason for failure returned by RabbitMQ
         self.detail=None
-        if content.get('reason'):
+        if content and content.get('reason'):
             self.detail = content['reason']
 
         self.output = "%s - %s (%s) (%s) (%s)" % (self.status,
@@ -106,4 +107,4 @@ class HTTPClient(object):
             if content:
                 return content
             else:
-                return True
+                return None
