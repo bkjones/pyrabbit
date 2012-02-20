@@ -179,10 +179,13 @@ class Client(object):
     @needs_admin_privs
     def get_users(self):
         """
+        Lists the names of all users, and whether or not they have admin
+        privileges.
+
         :returns: a list of dictionaries, each representing a user. This
-            method is decorated with '@needs_admin_privs', and will raise
-            an error if the credentials used to set up the broker connection
-            do not have admin privileges.
+              method is decorated with '@needs_admin_privs', and will raise
+              an error if the credentials used to set up the broker connection
+              do not have admin privileges.
 
         """
 
@@ -194,8 +197,10 @@ class Client(object):
     ################################################
     def get_all_vhosts(self):
         """
+        Lists the names of all RabbitMQ vhosts.
+
         :returns: a list of dicts, each dict representing a vhost
-            on the broker.
+                on the broker.
 
         """
         vhosts = self.http.do_call(Client.urls['all_vhosts'], 'GET')
