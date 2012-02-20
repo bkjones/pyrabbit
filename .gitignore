@@ -6,6 +6,8 @@
 *egg-info*
 build
 _build
+_static
+_templates
 dist
 *.log
 
