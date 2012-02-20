@@ -179,8 +179,8 @@ class Client(object):
     @needs_admin_privs
     def get_users(self):
         """
-        Lists the names of all users, and whether or not they have admin
-        privileges.
+        Returns a list of dictionaries, each containing the attributes of a
+        different RabbitMQ user.
 
         :returns: a list of dictionaries, each representing a user. This
               method is decorated with '@needs_admin_privs', and will raise
