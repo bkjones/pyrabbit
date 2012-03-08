@@ -10,3 +10,6 @@ PyRabbit is on PyPI, which makes it installable using pip or easy_install.
 
 See the documentation at http://pyrabbit.readthedocs.org
 
+Please send pull requests! Pyrabbit doesn't yet provide 100% coverage of
+the exposed RabbitMQ API, so dig in! 
+

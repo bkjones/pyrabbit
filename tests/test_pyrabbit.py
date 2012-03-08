@@ -1,4 +1,6 @@
 from collections import namedtuple
+import json
+import httplib2
 
 try:
     #python 2.x
@@ -80,6 +82,22 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=q)
         depth = self.client.get_queue_depth('/', 'test')
         self.assertEqual(depth, q['messages'])
+
+    def test_get_queue_depth_2(self):
+        """
+        An integration test that includes the HTTP client's do_call
+        method and json decoding operations.
+
+        """
+        q = {'messages': 8}
+        json_q = json.dumps(q)
+
+        with patch('httplib2.Response') as resp:
+            resp.reason = 'response reason here'
+            resp.status = 200
+            self.client.http.client.request = Mock(return_value=(resp, json_q))
+            depth = self.client.get_queue_depth('/', 'test')
+            self.assertEqual(depth, q['messages'])
 
     def test_purge_queue(self):
         self.client.http.do_call = Mock(return_value=True)
