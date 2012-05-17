@@ -594,7 +594,7 @@ class Client(object):
     #########################################
     # CONNS/CHANS & BINDINGS
     #########################################
-   def get_connections(self):
+    def get_connections(self):
         """
         :returns: list of dicts, or an empty list if there are no connections.
         """
