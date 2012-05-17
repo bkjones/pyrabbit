@@ -1,6 +1,6 @@
-from collections import namedtuple
+"""Main test file for the pyrabbit Client."""
+
 import json
-import httplib2
 
 try:
     #python 2.x
@@ -67,14 +67,15 @@ class TestClient(unittest.TestCase):
         myexch = self.client.get_exchange('%2F', 'foo')
         self.assertEqual(myexch['name'], 'foo')
 
-    def test_get_users_noprivs(self):
-        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
-            mock_rights.__get__ = Mock(return_value=False)
-            self.assertRaises(pyrabbit.api.PermissionError, self.client.get_users)
+    @patch.object(pyrabbit.api.Client, 'has_admin_rights')
+    def test_get_users_noprivs(self, has_rights):
+        has_rights.__get__ = Mock(return_value=False)
+        self.assertRaises(pyrabbit.api.PermissionError, self.client.get_users)
 
-    def test_get_users_withprivs(self):
-        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
-            mock_rights.__get__ = Mock(return_value=True)
+    @patch.object(pyrabbit.api.Client, 'has_admin_rights')
+    def test_get_users_withprivs(self, has_rights):
+        has_rights.return_value = True
+        with patch('pyrabbit.http.HTTPClient.do_call') as do_call:
             self.assertTrue(self.client.get_users())
 
     def test_get_queue_depth(self):
@@ -143,9 +144,11 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.delete_vhost('vname'))
 
-    def test_is_alive_withprivs(self):
-        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
-            mock_rights.__get__ = Mock(return_value=True)
+    @patch.object(pyrabbit.api.Client, 'has_admin_rights')
+    def test_is_alive_withprivs(self, mock_rights):
+        mock_rights.__get__ = Mock(return_value=True)
+        with patch('pyrabbit.http.HTTPClient.do_call') as do_call:
+            do_call.return_value = {'status': 'ok'}
             self.assertTrue(self.client.is_alive())
 
     def test_is_alive_noprivs(self):
@@ -154,9 +157,7 @@ class TestClient(unittest.TestCase):
             self.assertRaises(pyrabbit.api.PermissionError, self.client.is_alive)
 
 
-
-
-
+@unittest.skip
 class TestLiveServer(unittest.TestCase):
     def setUp(self):
         self.rabbit = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
