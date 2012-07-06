@@ -105,6 +105,20 @@ class Client(object):
         self.is_admin = None
         return
 
+    def build_url(self, key, subs=None):
+        """
+        Construct the URL used to make the HTTP request.
+
+        :param string key: Key used to look up the URL format string used to
+            form the url. The lookup is done on Client.urls.
+
+        :param tuple subs: A tuple of strings that will be used to populate any
+            string formatting placeholders in the Client.urls value.
+
+        """
+        url = Client.urls[key] % subs
+        return url
+
     @needs_admin_privs
     def is_alive(self, vhost='%2F'):
         """
@@ -118,10 +132,12 @@ class Client(object):
         :raises: HTTPError if *vhost* doesn't exist on the broker.
 
         """
-        uri = Client.urls['live_test'] % vhost
+        uri = self.build_url('live_test',(vhost))
 
         try:
+            #print "Calling do_call..."
             resp = self.http.do_call(uri, 'GET')
+            #print "RESPONSE INSIDE PYRABBIT: %s" % resp
         except http.HTTPError as err:
             if err.status == 404:
                 raise APIError("No vhost named '%s'" % vhost)

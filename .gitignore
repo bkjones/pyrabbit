@@ -10,4 +10,4 @@ _static
 _templates
 dist
 *.log
-
+nosetests.xml
