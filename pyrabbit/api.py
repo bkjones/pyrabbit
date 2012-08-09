@@ -679,7 +679,7 @@ class Client(object):
 
     def delete_binding(self, vhost, exchange, queue, rt_key):
         """
-        Creates a binding between an exchange and a queue on a given vhost.
+        Deletes a binding between an exchange and a queue on a given vhost.
 
         :param string vhost: vhost housing the exchange/queue to bind
         :param string exchange: the target exchange of the binding
