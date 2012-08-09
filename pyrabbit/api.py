@@ -74,6 +74,7 @@ class Client(object):
             'bindings_by_dest_exch': 'exchanges/%s/%s/bindings/destination',
             'bindings_on_queue': 'queues/%s/%s/bindings',
             'bindings_between_exch_queue': 'bindings/%s/e/%s/q/%s',
+            'rt_bindings_between_exch_queue': 'bindings/%s/e/%s/q/%s/%s',
             'get_from_queue': 'queues/%s/%s/get',
             'publish_to_exchange': 'exchanges/%s/%s/publish',
             'vhosts_by_name': 'vhosts/%s',
@@ -675,3 +676,21 @@ class Client(object):
         binding = self.http.do_call(path, 'POST', body=body,
                                     headers=Client.json_headers)
         return binding
+
+    def delete_binding(self, vhost, exchange, queue, rt_key):
+        """
+        Deletes a binding between an exchange and a queue on a given vhost.
+
+        :param string vhost: vhost housing the exchange/queue to bind
+        :param string exchange: the target exchange of the binding
+        :param string queue: the queue to bind to the exchange
+        :param string rt_key: the routing key to use for the binding
+        """
+
+        vhost = '%2F' if vhost == '/' else vhost
+        body = ''
+        path = Client.urls['rt_bindings_between_exch_queue'] % (vhost,
+                                                                exchange,
+                                                                queue,
+                                                                rt_key)
+        return self.http.do_call(path, 'DELETE', headers=Client.json_headers)

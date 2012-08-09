@@ -131,6 +131,13 @@ class TestClient(unittest.TestCase):
                                                    'queue',
                                                    'rt_key'))
 
+    def test_delete_binding(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.delete_binding('vhost',
+                                                   'exch',
+                                                   'queue',
+                                                   'rt_key'))
+
     def test_publish(self):
         self.client.http.do_call = Mock(return_value={'routed': 'true'})
         self.assertTrue(self.client.publish('vhost', 'xname', 'rt_key',
@@ -179,6 +186,7 @@ class TestLiveServer(unittest.TestCase):
         * Create a binding between the queue and exchange
         * Publish a message to the exchange that makes it to the queue
         * Grab that message from the queue (verify it's the same message)
+        * Delete binding and verify we don't receive messages
         * Delete the exchange
         * Delete the vhost
         """
@@ -208,11 +216,19 @@ class TestLiveServer(unittest.TestCase):
         self.rabbit.create_binding(self.vhost_name, self.exchange_name,
                                    self.queue_name, self.rt_key)
 
-        # publish a message, and verify by get'ing it back.
+        # publish a message, and verify by getting it back.
         self.rabbit.publish(self.vhost_name, self.exchange_name, self.rt_key,
                             self.payload)
         messages = self.rabbit.get_messages(self.vhost_name, self.queue_name)
         self.assertEqual(messages[0]['payload'], self.payload)
+
+        # delete binding and verify we don't get the message
+        self.rabbit.delete_binding(self.vhost_name, self.exchange_name,
+            self.queue_name, self.rt_key)
+        self.rabbit.publish(self.vhost_name, self.exchange_name, self.rt_key,
+            self.payload)
+        messages = self.rabbit.get_messages(self.vhost_name, self.queue_name)
+        self.assertEqual(len(messages), 0)
 
         # Clean up.
         self.rabbit.delete_exchange(self.vhost_name, self.exchange_name)
