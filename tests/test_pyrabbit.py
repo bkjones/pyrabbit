@@ -151,6 +151,14 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.delete_vhost('vname'))
 
+    def test_create_user(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.create_user('user', 'password'))
+
+    def test_delete_user(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.delete_user('user'))
+
     @patch.object(pyrabbit.api.Client, 'has_admin_rights')
     def test_is_alive_withprivs(self, mock_rights):
         mock_rights.__get__ = Mock(return_value=True)
