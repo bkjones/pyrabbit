@@ -78,7 +78,8 @@ class Client(object):
             'get_from_queue': 'queues/%s/%s/get',
             'publish_to_exchange': 'exchanges/%s/%s/publish',
             'vhosts_by_name': 'vhosts/%s',
-            'vhost_permissions': 'permissions/%s/%s'
+            'vhost_permissions': 'permissions/%s/%s',
+            'users_by_name': 'users/%s'
             }
 
     json_headers = {"content-type": "application/json"}
@@ -694,3 +695,26 @@ class Client(object):
                                                                 queue,
                                                                 rt_key)
         return self.http.do_call(path, 'DELETE', headers=Client.json_headers)
+
+    def create_user(self, username, password, tags=""):
+        """
+        Creates a user.
+
+        :param string username: The name to give to the new user
+        :param string password: Password for the new user
+        :param string tags: Comma-separated list of tags for the user
+        :returns: boolean
+        """
+        path = Client.urls['users_by_name'] % username
+        body = json.dumps({'password': password, 'tags': tags})
+        return self.http.do_call(path, 'PUT', body=body,
+                                 headers=Client.json_headers)
+
+    def delete_user(self, username):
+        """
+        Deletes a user from the server.
+
+        :param string username: Name of the user to delete from the server.
+        """
+        path = Client.urls['users_by_name'] % username
+        return self.http.do_call(path, 'DELETE')
