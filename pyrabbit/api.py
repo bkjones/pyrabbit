@@ -162,7 +162,7 @@ class Client(object):
         """
         if self.is_admin is None:
             whoami = self.get_whoami()
-            self.is_admin = whoami.get('administrator', False)
+            self.is_admin = whoami.get('tags', '') == 'administrator'
 
         return self.is_admin
 
