@@ -636,8 +636,8 @@ class Client(object):
 
         """
         path = Client.urls['channels_by_name'] % urllib.quote(name)
-        conn = self.http.do_call(path, 'GET')
-        return conn
+        chan = self.http.do_call(path, 'GET')
+        return chan
 
     def get_bindings(self):
         """
