@@ -120,6 +120,10 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_channels())
 
+    def test_get_channel(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_channel('127.0.0.1:1234 -> 127.0.0.1:5678 (1)'))
+
     def test_get_bindings(self):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_bindings())
