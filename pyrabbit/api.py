@@ -618,6 +618,19 @@ class Client(object):
         conn = self.http.do_call(path, 'GET')
         return conn
 
+    def delete_connection(self, name):
+        """
+        Close the named connection. The API returns a 204 on success,
+        in which case this method returns True, otherwise the
+        error is raised.
+
+        :param string name: The name of the connection or the channel to delete.
+        :returns bool: True on success.
+        """
+        path = Client.urls['connections_by_name'] % urllib.quote(name)
+        self.http.do_call(path, 'DELETE')
+        return True
+
     def get_channels(self):
         """
         Return a list of dicts containing details about broker connections.

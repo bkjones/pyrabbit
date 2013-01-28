@@ -116,6 +116,10 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_connection('cname'))
 
+    def test_delete_connection(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.delete_connection('127.0.0.1:1234 -> 127.0.0.1:5678 (1)'))
+
     def test_get_channels(self):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_channels())
