@@ -624,7 +624,7 @@ class Client(object):
         in which case this method returns True, otherwise the
         error is raised.
 
-        :param string name: The name of the connection or the channel to delete.
+        :param string name: The name of the connection to delete.
         :returns bool: True on success.
         """
         path = Client.urls['connections_by_name'] % urllib.quote(name)
