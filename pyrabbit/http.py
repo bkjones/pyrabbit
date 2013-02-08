@@ -46,7 +46,7 @@ class HTTPClient(object):
 
     """
 
-    def __init__(self, server, uname, passwd):
+    def __init__(self, server, uname, passwd, timeout=1):
         """
         :param string server: 'host:port' string denoting the location of the
             broker and the port for interfacing with its REST API.
@@ -55,7 +55,7 @@ class HTTPClient(object):
 
         """
 
-        self.client = httplib2.Http()
+        self.client = httplib2.Http(timeout=timeout)
         self.client.add_credentials(uname, passwd)
         self.base_url = 'http://%s/api' % server
 
