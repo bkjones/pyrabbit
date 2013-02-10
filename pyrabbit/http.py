@@ -1,7 +1,9 @@
 
-import httplib2
 import json
 import os
+import socket
+import httplib2
+
 
 class HTTPError(Exception):
     """
@@ -32,11 +34,13 @@ class HTTPError(Exception):
     def __str__(self):
         return self.output
 
+
 class NetworkError(Exception):
     """Denotes a failure to communicate with the REST API
 
     """
     pass
+
 
 class HTTPClient(object):
     """
@@ -46,12 +50,13 @@ class HTTPClient(object):
 
     """
 
-    def __init__(self, server, uname, passwd, timeout=1):
+    def __init__(self, server, uname, passwd, timeout=5):
         """
         :param string server: 'host:port' string denoting the location of the
             broker and the port for interfacing with its REST API.
         :param string uname: Username credential used to authenticate.
         :param string passwd: Password used to authenticate w/ REST API
+        :param int timeout: Integer number of seconds to wait for each call.
 
         """
 
@@ -82,7 +87,8 @@ class HTTPClient(object):
             in the request.
         :param string body: A string representing any data to be sent in the
             body of the HTTP request.
-        :param dict headers: {header-name: header-value} dictionary.
+        :param dictionary headers:
+            "{header-name: header-value}" dictionary.
 
         """
         url = os.path.join(self.base_url, path)
@@ -91,6 +97,8 @@ class HTTPClient(object):
                                                 reqtype,
                                                 body,
                                                 headers)
+        except socket.timeout as out:
+            raise NetworkError("Timout while trying to connect to RabbitMQ")
         except Exception as out:
             # net-related exception types from httplib2 are unpredictable.
             raise NetworkError("Error: %s %s" % (type(out), out))
