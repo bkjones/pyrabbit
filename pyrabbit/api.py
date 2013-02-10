@@ -7,6 +7,7 @@ decorators used by the class.
 from . import http
 import functools
 import json
+import urllib
 
 
 class APIError(Exception):
@@ -69,6 +70,7 @@ class Client(object):
             'exchange_by_name': 'exchanges/%s/%s',
             'live_test': 'aliveness-test/%s',
             'purge_queue': 'queues/%s/%s/contents',
+            'channels_by_name': 'channels/%s',
             'connections_by_name': 'connections/%s',
             'bindings_by_source_exch': 'exchanges/%s/%s/bindings/source',
             'bindings_by_dest_exch': 'exchanges/%s/%s/bindings/destination',
@@ -160,7 +162,7 @@ class Client(object):
         """
         if self.is_admin is None:
             whoami = self.get_whoami()
-            self.is_admin = whoami.get('administrator', False)
+            self.is_admin = whoami.get('tags', '') == 'administrator'
 
         return self.is_admin
 
@@ -616,6 +618,19 @@ class Client(object):
         conn = self.http.do_call(path, 'GET')
         return conn
 
+    def delete_connection(self, name):
+        """
+        Close the named connection. The API returns a 204 on success,
+        in which case this method returns True, otherwise the
+        error is raised.
+
+        :param string name: The name of the connection to delete.
+        :returns bool: True on success.
+        """
+        path = Client.urls['connections_by_name'] % urllib.quote(name)
+        self.http.do_call(path, 'DELETE')
+        return True
+
     def get_channels(self):
         """
         Return a list of dicts containing details about broker connections.
@@ -624,6 +639,18 @@ class Client(object):
         path = Client.urls['all_channels']
         chans = self.http.do_call(path, 'GET')
         return chans
+
+    def get_channel(self, name):
+        """
+        Get a channel by name. To get the names, use get_channels.
+
+        :param string name: Name of channel to get
+        :returns dict conn: A channel attribute dictionary.
+
+        """
+        path = Client.urls['channels_by_name'] % urllib.quote(name)
+        chan = self.http.do_call(path, 'GET')
+        return chan
 
     def get_bindings(self):
         """

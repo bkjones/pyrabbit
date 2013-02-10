@@ -116,9 +116,17 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_connection('cname'))
 
+    def test_delete_connection(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.delete_connection('127.0.0.1:1234 -> 127.0.0.1:5678 (1)'))
+
     def test_get_channels(self):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_channels())
+
+    def test_get_channel(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_channel('127.0.0.1:1234 -> 127.0.0.1:5678 (1)'))
 
     def test_get_bindings(self):
         self.client.http.do_call = Mock(return_value=True)
@@ -170,6 +178,13 @@ class TestClient(unittest.TestCase):
         with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
             mock_rights.__get__ = Mock(return_value=False)
             self.assertRaises(pyrabbit.api.PermissionError, self.client.is_alive)
+
+    def test_has_admin_rights(self):
+        response = {u'auth_backend': u'rabbit_auth_backend_internal', u'name': u'guest', u'tags': u'administrator'}
+        self.client.get_whoami = Mock(return_value=response)
+        with patch.object(pyrabbit.api.Client, 'get_whoami') as mock_whoami:
+            mock_whoami.__get__ = Mock(return_value=True)
+            self.assertTrue(self.client.has_admin_rights)
 
 
 @unittest.skip
