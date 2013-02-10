@@ -66,11 +66,10 @@ class HTTPClient(object):
         :param json content: A Python JSON object.
 
         """
-        str_ct = content.decode('utf8')
         try:
-            py_ct = json.loads(str_ct)
+            py_ct = json.loads(content)
         except ValueError as out:
-            print("%s - (%s) (%s)" % (out, str_ct, type(str_ct)))
+            print("%s - (%s) (%s)" % (out, content, type(content)))
             return None
         return py_ct
 
