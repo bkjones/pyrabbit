@@ -180,7 +180,11 @@ class TestClient(unittest.TestCase):
             self.assertRaises(pyrabbit.api.PermissionError, self.client.is_alive)
 
     def test_has_admin_rights(self):
-        response = {u'auth_backend': u'rabbit_auth_backend_internal', u'name': u'guest', u'tags': u'administrator'}
+        response = {
+            'auth_backend': 'rabbit_auth_backend_internal',
+            'name': 'guest',
+            'tags': 'administrator',
+        }
         self.client.get_whoami = Mock(return_value=response)
         with patch.object(pyrabbit.api.Client, 'get_whoami') as mock_whoami:
             mock_whoami.__get__ = Mock(return_value=True)

@@ -7,7 +7,12 @@ decorators used by the class.
 from . import http
 import functools
 import json
-import urllib
+try:
+    #python 2.x
+    from urllib import quote
+except ImportError:
+    #python 3.x
+    from urllib.parse import quote
 
 
 class APIError(Exception):
@@ -627,7 +632,7 @@ class Client(object):
         :param string name: The name of the connection to delete.
         :returns bool: True on success.
         """
-        path = Client.urls['connections_by_name'] % urllib.quote(name)
+        path = Client.urls['connections_by_name'] % quote(name)
         self.http.do_call(path, 'DELETE')
         return True
 
@@ -648,7 +653,7 @@ class Client(object):
         :returns dict conn: A channel attribute dictionary.
 
         """
-        path = Client.urls['channels_by_name'] % urllib.quote(name)
+        path = Client.urls['channels_by_name'] % quote(name)
         chan = self.http.do_call(path, 'GET')
         return chan
 
