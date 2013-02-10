@@ -520,20 +520,14 @@ class Client(object):
         path = Client.urls['purge_queue'] % (vhost, name)
         return self.http.do_call(path, 'DELETE')
 
-    def create_queue(self, vhost, name, auto_delete=None, durable=None,
-                         arguments=None, node=None):
+    def create_queue(self, vhost, name, **kwargs):
         """
         Create a queue. The API documentation specifies that all of the body
         elements are optional, so this method only requires arguments needed
         to form the URI
 
-        :param string name: The name of the queue
         :param string vhost: The vhost to create the queue in.
-        :param string auto_delete: Whether to destroy the queue when the
-            consumer count is zero (after having been non-zero at some point)
-        :param string durable: Whether the queue should exist after a restart
-        :param string arguments: Arguments for the queue declaration.
-        :param string node: The erlang/rabbit node name to create the queue on.
+        :param string name: The name of the queue
 
         More on these operations can be found at:
         http://www.rabbitmq.com/amqp-0-9-1-reference.html
@@ -541,16 +535,7 @@ class Client(object):
         """
 
         vhost = '%2F' if vhost == '/' else vhost
-        if auto_delete or durable or arguments or node:
-            base_body = {"auto_delete": auto_delete,
-                       "durable": durable,
-                       "node": node}
-            if arguments:
-                base_body['arguments'] = arguments
-        else:
-            base_body = {}
-
-        body = json.dumps(base_body)
+        body = json.dumps(kwargs) if kwargs else None
 
         path = Client.urls['queues_by_name'] % (vhost, name)
         return self.http.do_call(path,
