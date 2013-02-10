@@ -520,7 +520,7 @@ class Client(object):
         path = Client.urls['purge_queue'] % (vhost, name)
         return self.http.do_call(path, 'DELETE')
 
-    def create_queue(self, name, vhost, auto_delete=None, durable=None,
+    def create_queue(self, vhost, name, auto_delete=None, durable=None,
                          arguments=None, node=None):
         """
         Create a queue. The API documentation specifies that all of the body

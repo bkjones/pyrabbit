@@ -234,7 +234,7 @@ class TestLiveServer(unittest.TestCase):
                                                   self.exchange_name)['name'])
 
         # create a queue and verify it was created
-        self.rabbit.create_queue(self.queue_name, self.vhost_name)
+        self.rabbit.create_queue(self.vhost_name,self.queue_name)
         self.assertEqual(self.queue_name,
                         self.rabbit.get_queue(self.vhost_name,
                                               self.queue_name)['name'])
