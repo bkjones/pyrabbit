@@ -251,11 +251,11 @@ class TestLiveServer(unittest.TestCase):
 
         # delete binding and verify we don't get the message
         self.rabbit.delete_binding(self.vhost_name, self.exchange_name,
-            self.queue_name, self.rt_key)
+                                   self.queue_name, self.rt_key)
         self.rabbit.publish(self.vhost_name, self.exchange_name, self.rt_key,
-            self.payload)
+                            self.payload)
         messages = self.rabbit.get_messages(self.vhost_name, self.queue_name)
-        self.assertEqual(len(messages), 0)
+        self.assertIsNone(messages)
 
         # Clean up.
         self.rabbit.delete_exchange(self.vhost_name, self.exchange_name)
