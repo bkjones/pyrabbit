@@ -91,7 +91,7 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd):
+    def __init__(self, host, user, passwd, timeout=5):
         """
         :param string host: string of the form 'host:port'
         :param string user: username used to authenticate to the API.
@@ -105,7 +105,13 @@ class Client(object):
         self.host = host
         self.user = user
         self.passwd = passwd
-        self.http = http.HTTPClient(self.host, self.user, self.passwd)
+        self.timeout = timeout
+        self.http = http.HTTPClient(
+            self.host,
+            self.user,
+            self.passwd,
+            self.timeout
+        )
 
         # initialize this now. @needs_admin_privs will check this first to
         # avoid making an HTTP call. If this is None, it'll trigger an
@@ -535,9 +541,10 @@ class Client(object):
         """
 
         vhost = '%2F' if vhost == '/' else vhost
-        body = json.dumps(kwargs) if kwargs else None
-
         path = Client.urls['queues_by_name'] % (vhost, name)
+
+        body = json.dumps(kwargs)
+
         return self.http.do_call(path,
                                  'PUT',
                                  body,
