@@ -6,5 +6,6 @@ python:
   - "pypy"
 install:
   # Install everything required to test the project
-  - pip install -r requirements.txt --use-mirrors
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then pip install -r requirements3.txt --use-mirrors; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != '3.3' ]]; then pip install -r requirements.txt --use-mirrors; fi
 script: nosetests 
