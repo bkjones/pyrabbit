@@ -478,7 +478,7 @@ class Client(object):
         """
         vhost = '%2F' if vhost == '/' else vhost
         path = Client.urls['queues_by_name'] % (vhost, name)
-        queue = self.http.do_call(path,'GET')
+        queue = self.http.do_call(path, 'GET')
         depth = queue['messages']
 
         return depth
@@ -507,7 +507,6 @@ class Client(object):
             for name in names:
                 depth = self.get_queue_depth(vhost, name)
                 print("\t%s: %s" % (name, depth))
-
 
     def purge_queues(self, queues):
         """
