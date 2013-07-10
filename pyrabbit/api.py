@@ -191,6 +191,18 @@ class Client(object):
         overview = self.http.do_call(Client.urls['overview'], 'GET')
         return overview
 
+    def get_node(self)
+        """
+        :rtype: dict
+
+        Returns a list of dictionaries, each containing the details and status
+        of each node of a cluster.
+
+
+        """
+        nodes = self.http.do_call(Clients.urls['nodes'], 'GET')
+        return nodes
+
     @needs_admin_privs
     def get_users(self):
         """
