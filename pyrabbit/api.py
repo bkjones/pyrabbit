@@ -332,6 +332,18 @@ class Client(object):
         return self.http.do_call(path, 'PUT', body,
                                  headers=Client.json_headers)
 
+    def delete_permission(self, vname, username):
+        """
+        Delete permission for a given username on a given vhost. Both
+        must already exist.
+
+        :param string vname: Name of the vhost to set perms on.
+        :param string username: User to set permissions for.
+        """
+        vname = '%2F' if vname == '/' else vname
+        path = Client.urls['vhost_permissions'] % (vname, username)
+        return self.http.do_call(path, 'DELETE')
+
     ###############################################
     ##           EXCHANGES
     ###############################################
