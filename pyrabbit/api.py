@@ -344,6 +344,17 @@ class Client(object):
         path = Client.urls['vhost_permissions'] % (vname, username)
         return self.http.do_call(path, 'DELETE')
 
+    def get_permission(self, vname, username):
+        """
+        :returns: dicts of permissions.
+
+        :param string vname: Name of the vhost to set perms on.
+        :param string username: User to set permissions for.
+        """
+        vname = '%2F' if vname == '/' else vname
+        path = Client.urls['vhost_permissions'] % (vname, username)
+        return self.http.do_call(path, 'GET')
+
     ###############################################
     ##           EXCHANGES
     ###############################################
