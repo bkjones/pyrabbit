@@ -88,7 +88,8 @@ class Client(object):
             'vhosts_by_name': 'vhosts/%s',
             'vhost_permissions': 'permissions/%s/%s',
             'users_by_name': 'users/%s',
-            'user_permissions': 'users/%s/permissions'
+            'user_permissions': 'users/%s/permissions',
+            'vhost_permissions_get': 'vhosts/%s/permissions'
             }
 
     json_headers = {"content-type": "application/json"}
@@ -290,7 +291,7 @@ class Client(object):
         :param string username: User to set permissions for.
         """
         vname = '%2F' if vname == '/' else vname
-        path = Client.urls['vhost_permissions'] % (vname, 'permissions')
+        path = Client.urls['vhost_permissions_get'] % (vname,)
         conns = self.http.do_call(path, 'GET')
         return conns
 
@@ -301,7 +302,7 @@ class Client(object):
         :param string vname: Name of the vhost to set perms on.
         :param string username: User to set permissions for.
         """
-        
+
         path = Client.urls['user_permissions'] % (username,)
         conns = self.http.do_call(path, 'GET')
         return conns
