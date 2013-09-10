@@ -67,6 +67,7 @@ class Client(object):
             'all_nodes': 'nodes',
             'all_vhosts': 'vhosts',
             'all_users': 'users',
+            'all_permissions': 'permissions',
             'all_bindings': 'bindings',
             'whoami': 'whoami',
             'queues_by_vhost': 'queues/%s',
@@ -86,7 +87,8 @@ class Client(object):
             'publish_to_exchange': 'exchanges/%s/%s/publish',
             'vhosts_by_name': 'vhosts/%s',
             'vhost_permissions': 'permissions/%s/%s',
-            'users_by_name': 'users/%s'
+            'users_by_name': 'users/%s',
+            'user_permissions': 'users/%s/permissions'
             }
 
     json_headers = {"content-type": "application/json"}
@@ -268,6 +270,41 @@ class Client(object):
         vname = '%2F' if vname == '/' else vname
         path = Client.urls['vhosts_by_name'] % vname
         return self.http.do_call(path, 'DELETE')
+
+    ###############################################
+    ##           PERMISSIONS
+    ###############################################
+    def get_permissions(self):
+        """
+        :returns: list of dicts, or an empty list if there are no permissions.
+        """
+        path = Client.urls['all_permissions']
+        conns = self.http.do_call(path, 'GET')
+        return conns
+
+    def get_vhost_permissions(self, vname):
+        """
+        :returns: list of dicts, or an empty list if there are no permissions.
+
+        :param string vname: Name of the vhost to set perms on.
+        :param string username: User to set permissions for.
+        """
+        vname = '%2F' if vname == '/' else vname
+        path = Client.urls['vhost_permissions'] % (vname, 'permissions')
+        conns = self.http.do_call(path, 'GET')
+        return conns
+
+    def get_user_permissions(self, username):
+        """
+        :returns: list of dicts, or an empty list if there are no permissions.
+
+        :param string vname: Name of the vhost to set perms on.
+        :param string username: User to set permissions for.
+        """
+        
+        path = Client.urls['user_permissions'] % (username,)
+        conns = self.http.do_call(path, 'GET')
+        return conns
 
     def set_vhost_permissions(self, vname, username, config, rd, wr):
         """
