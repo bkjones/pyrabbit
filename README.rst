@@ -1,4 +1,4 @@
-.. image:: https://travis-ci.org/bkjones/pyrabbit.svg?branch=master   :target: https://travis-ci.org/bkjones/pyrabbit
+.. image:: https://travis-ci.org/bkjones/pyrabbit.svg?branch=master
 
 ==================
 PyRabbit
