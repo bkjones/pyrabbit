@@ -91,11 +91,13 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd, timeout=5):
+    def __init__(self, host, user, passwd, timeout=5, ssl=False, ssl_no_verify=False):
         """
         :param string host: string of the form 'host:port'
         :param string user: username used to authenticate to the API.
         :param string passwd: password used to authenticate to the API.
+        :param boolean ssl: select if connecting to the API with ssl.
+        :param boolean ssl_no_verify: Enable/disable SSL certificate verification.
 
         Populates server attributes using passed-in parameters and
         the HTTP API's 'overview' information. It also instantiates
@@ -106,11 +108,15 @@ class Client(object):
         self.user = user
         self.passwd = passwd
         self.timeout = timeout
+        self.ssl = ssl
+        self.ssl_no_verify = ssl_no_verify
         self.http = http.HTTPClient(
             self.host,
             self.user,
             self.passwd,
-            self.timeout
+            self.timeout,
+            self.ssl,
+            self.ssl_no_verify
         )
 
         # initialize this now. @needs_admin_privs will check this first to

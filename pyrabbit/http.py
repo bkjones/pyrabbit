@@ -50,19 +50,28 @@ class HTTPClient(object):
 
     """
 
-    def __init__(self, server, uname, passwd, timeout=5):
+    def __init__(self, server, uname, passwd, timeout=5, ssl=False, ssl_no_verify=False):
         """
         :param string server: 'host:port' string denoting the location of the
             broker and the port for interfacing with its REST API.
         :param string uname: Username credential used to authenticate.
         :param string passwd: Password used to authenticate w/ REST API
         :param int timeout: Integer number of seconds to wait for each call.
+        :param boolean ssl: Connect to the API with ssl.
+        :param boolean ssl_no_verify: Enable/disable SSL certificate verification.
 
         """
 
-        self.client = httplib2.Http(timeout=timeout)
+        if ssl:
+            self.client = httplib2.Http(timeout=timeout, disable_ssl_certificate_validation=ssl_no_verify)
+            scheme = 'https'
+        else:
+            self.client = httplib2.Http(timeout=timeout)
+            scheme = 'http'
+
         self.client.add_credentials(uname, passwd)
-        self.base_url = 'http://%s/api' % server
+
+        self.base_url = '%s://%s/api' % (scheme, server)
 
     def decode_json_content(self, content):
         """
