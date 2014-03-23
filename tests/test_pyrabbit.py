@@ -194,7 +194,7 @@ class TestClient(unittest.TestCase):
 @unittest.skip
 class TestLiveServer(unittest.TestCase):
     def setUp(self):
-        self.rabbit = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
+        self.rabbit = pyrabbit.api.Client('localhost:15672', 'guest', 'guest')
         self.vhost_name = 'pyrabbit_test_vhost'
         self.exchange_name = 'pyrabbit_test_exchange'
         self.queue_name = 'pyrabbit_test_queue'
