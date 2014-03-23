@@ -14,6 +14,43 @@ sys.path.append('..')
 import pyrabbit
 from mock import Mock, patch
 
+
+class TestClientInit(unittest.TestCase):
+
+    def setUp(self):
+        self.client = pyrabbit.api.Client()
+
+    def tearDown(self):
+        del self.client
+
+    def test_default_host(self):
+        self.assertEqual(self.client.host, 'localhost:55672')
+
+    def test_default_user(self):
+        self.assertEqual(self.client.user, 'guest')
+
+    def test_default_password(self):
+        self.assertEqual(self.client.passwd, 'guest')
+
+    def test_default_timeout(self):
+        self.assertEqual(self.client.timeout, 5)
+
+
+class TestClientHostPort(unittest.TestCase):
+
+    def test_default_port(self):
+        client = pyrabbit.api.Client('localhost')
+        self.assertEqual(client.host, 'localhost:55672')
+
+    def test_port_in_host_string(self):
+        client = pyrabbit.api.Client('localhost:15672')
+        self.assertEqual(client.host, 'localhost:15672')
+
+    def test_custom_port(self):
+        client = pyrabbit.api.Client(port=15672)
+        self.assertEqual(client.host, 'localhost:15672')
+
+
 class TestClient(unittest.TestCase):
     def setUp(self):
         self.client = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')

@@ -91,17 +91,27 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd, timeout=5):
+    def __init__(self, host='localhost', user='guest', passwd='guest',
+                 port=55672, timeout=5):
         """
-        :param string host: string of the form 'host:port'
-        :param string user: username used to authenticate to the API.
-        :param string passwd: password used to authenticate to the API.
+        :param string host: string of the form 'host[:port]' (default:
+            `localhost`).
+        :param string user: username used to authenticate to the API (default:
+            `guest`).
+        :param string passwd: password used to authenticate to the API
+            (default: `guest`).
+        :param int port: port to use if no port is specified in the `host`
+            string (default: `55672`).
+        :param int timeout: maximum number of seconds to wait for each API
+            call (default: `5`).
 
         Populates server attributes using passed-in parameters and
         the HTTP API's 'overview' information. It also instantiates
-        an httplib2 HTTP client and adds credentia    ls
+        an httplib2 HTTP client and adds credentials.
 
         """
+        if ':' not in host:
+            host += ':{0:d}'.format(port)
         self.host = host
         self.user = user
         self.passwd = passwd
