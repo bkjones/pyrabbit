@@ -3,6 +3,7 @@ import json
 import os
 import socket
 import httplib2
+import urlparse
 
 
 class HTTPError(Exception):
@@ -62,7 +63,7 @@ class HTTPClient(object):
 
         self.client = httplib2.Http(timeout=timeout)
         self.client.add_credentials(uname, passwd)
-        self.base_url = 'http://%s/api' % server
+        self.base_url = 'http://%s/api/' % server
 
     def decode_json_content(self, content):
         """

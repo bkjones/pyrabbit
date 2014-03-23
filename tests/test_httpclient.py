@@ -3,6 +3,8 @@ try:
 except ImportError:
     import unittest
 
+import mock
+import httplib2
 import sys
 sys.path.append('..')
 from pyrabbit import http
@@ -38,3 +40,21 @@ class TestHTTPClient(unittest.TestCase):
         c = http.HTTPClient(self.testhost, self.testuser, self.testpass, 1)
         self.assertEqual(c.client.timeout, 1)
 
+    def test_base_url(self):
+        self.assertEquals('http://localhost:55672/api/', self.c.base_url)
+
+    @mock.patch('httplib2.Http', spec=httplib2.Http)
+    def test_url_path_creation(self, httplib):
+        client = mock.Mock()
+        httplib.return_value = client
+        c = http.HTTPClient('localhost:55672', 'guest', 'guest')
+        resp = mock.Mock()
+        resp.status = 200
+        client.request.return_value = (resp, None)
+        c.do_call('queues', 'GET')
+        client.request.assert_called_once_with(
+            'http://localhost:55672/api/queues',
+            'GET', 
+            None,
+            None
+        )
