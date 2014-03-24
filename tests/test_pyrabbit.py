@@ -42,6 +42,11 @@ class TestClient(unittest.TestCase):
         queues = self.client.get_queues()
         self.assertIsInstance(queues, list)
 
+    def test_get_nodes(self):
+        self.client.http.do_call = Mock(return_value=[])
+        nodes = self.client.get_nodes()
+        self.assertIsInstance(nodes, list)
+
     def test_purge_queues(self):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.purge_queues(['q1', 'q2']))
