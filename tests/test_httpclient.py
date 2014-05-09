@@ -12,19 +12,22 @@ from pyrabbit import http
 class TestHTTPClient(unittest.TestCase):
     """
     Except for the init test, these are largely functional tests that
-    require a RabbitMQ management API to be available on localhost:55672
+    require a RabbitMQ management API to be available on localhost
 
     """
+    testhost = 'localhost:15672'
+    testuser = 'guest'
+    testpass = 'guest'
     def setUp(self):
-        self.c = http.HTTPClient('localhost:55672', 'guest', 'guest')
+        self.c = http.HTTPClient(self.testhost, self.testuser, self.testpass)
 
     def test_client_init(self):
-        c = http.HTTPClient('localhost:55672', 'guest', 'guest')
+        c = http.HTTPClient(self.testhost, self.testuser, self.testpass)
         self.assertIsInstance(c, http.HTTPClient)
 
     def test_client_init_sets_credentials(self):
         domain = ''
-        expected_credentials = [(domain, 'guest', 'guest')]
+        expected_credentials = [(domain, self.testuser, self.testpass)]
         self.assertEqual(
             self.c.client.credentials.credentials, expected_credentials)
 
@@ -32,6 +35,6 @@ class TestHTTPClient(unittest.TestCase):
         self.assertEqual(self.c.client.timeout, 5)
 
     def test_client_init_with_timeout(self):
-        c = http.HTTPClient('localhost:55672', 'guest', 'guest', 1)
+        c = http.HTTPClient(self.testhost, self.testuser, self.testpass, 1)
         self.assertEqual(c.client.timeout, 1)
 

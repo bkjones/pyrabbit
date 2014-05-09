@@ -74,8 +74,11 @@ class HTTPClient(object):
         try:
             py_ct = json.loads(content)
         except ValueError as out:
-            print("%s - (%s) (%s)" % (out, content, type(content)))
+            print("%s: %s - (%s) (%s)" % (type(out), out, content, type(content)))
             return None
+        except TypeError:
+            # in later Python 3.x versions, some calls return bytes objects.
+            py_ct = json.loads(content.decode())
         return py_ct
 
     def do_call(self, path, reqtype, body=None, headers=None):
