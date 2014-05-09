@@ -290,7 +290,7 @@ class Client(object):
         :param string vname: Name of the vhost to set perms on.
         :param string username: User to set permissions for.
         """
-        vname = '%2F' if vname == '/' else vname
+        vname = quote(vname, '')
         path = Client.urls['vhost_permissions_get'] % (vname,)
         conns = self.http.do_call(path, 'GET')
         return conns
@@ -340,7 +340,7 @@ class Client(object):
         :param string vname: Name of the vhost to set perms on.
         :param string username: User to set permissions for.
         """
-        vname = '%2F' if vname == '/' else vname
+        vname = quote(vname, '')
         path = Client.urls['vhost_permissions'] % (vname, username)
         return self.http.do_call(path, 'DELETE')
 
@@ -351,7 +351,7 @@ class Client(object):
         :param string vname: Name of the vhost to set perms on.
         :param string username: User to set permissions for.
         """
-        vname = '%2F' if vname == '/' else vname
+        vname = quote(vname, '')
         path = Client.urls['vhost_permissions'] % (vname, username)
         return self.http.do_call(path, 'GET')
 
