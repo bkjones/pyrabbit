@@ -84,6 +84,15 @@ class TestClient(unittest.TestCase):
         depth = self.client.get_queue_depth('/', 'test')
         self.assertEqual(depth, q['messages'])
 
+    def test_get_queue_depth_empty_queue(self):
+        """
+        Sometimes, empty queues omit the 'messages' key. Need to handle this.
+        """
+        q = {}
+        self.client.http.do_call = Mock(return_value=q)
+        depth = self.client.get_queue_depth('/', 'test')
+        self.assertEqual(depth, 0)
+
     def test_get_queue_depth_2(self):
         """
         An integration test that includes the HTTP client's do_call

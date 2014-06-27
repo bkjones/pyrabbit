@@ -473,7 +473,11 @@ class Client(object):
         name = quote(name, '')
         path = Client.urls['queues_by_name'] % (vhost, name)
         queue = self.http.do_call(path,'GET')
-        depth = queue['messages']
+        # Sometimes, empty queues omit the 'messages' key
+        if 'messages' in queue:
+            depth = queue['messages']
+        else:
+            depth = 0
 
         return depth
 
