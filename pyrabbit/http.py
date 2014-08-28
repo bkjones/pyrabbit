@@ -3,7 +3,7 @@ import json
 import os
 import socket
 import httplib2
-
+from urlparse import urljoin
 
 class HTTPError(Exception):
     """
@@ -62,7 +62,7 @@ class HTTPClient(object):
 
         self.client = httplib2.Http(timeout=timeout)
         self.client.add_credentials(uname, passwd)
-        self.base_url = 'http://%s/api' % server
+        self.base_url = 'http://%s/api/' % server
 
     def decode_json_content(self, content):
         """
@@ -94,7 +94,8 @@ class HTTPClient(object):
             "{header-name: header-value}" dictionary.
 
         """
-        url = os.path.join(self.base_url, path)
+        url = urljoin(self.base_url, path)
+        print(url)
         try:
             resp, content = self.client.request(url,
                                                 reqtype,
