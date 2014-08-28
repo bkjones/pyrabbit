@@ -194,6 +194,18 @@ class Client(object):
         overview = self.http.do_call(Client.urls['overview'], 'GET')
         return overview
 
+    def get_nodes(self):
+        """
+        :rtype: dict
+
+        Returns a list of dictionaries, each containing the details of each
+        node of the cluster.
+
+
+        """
+        nodes = self.http.do_call(Client.urls['all_nodes'], 'GET')
+        return nodes
+
     @needs_admin_privs
     def get_users(self):
         """
@@ -533,7 +545,7 @@ class Client(object):
         vhost = quote(vhost, '')
         name = quote(name, '')
         path = Client.urls['queues_by_name'] % (vhost, name)
-        queue = self.http.do_call(path,'GET')
+        queue = self.http.do_call(path, 'GET')
         depth = queue['messages']
 
         return depth
@@ -562,7 +574,6 @@ class Client(object):
             for name in names:
                 depth = self.get_queue_depth(vhost, name)
                 print("\t%s: %s" % (name, depth))
-
 
     def purge_queues(self, queues):
         """
