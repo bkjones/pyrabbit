@@ -74,7 +74,7 @@ class HTTPClient(object):
         try:
             py_ct = json.loads(content)
         except ValueError as out:
-            print("JSON Decode Error - %s: %s - (%s) (%s)" % (type(out), out, content, type(content)))
+            # If there's a 404 or other error, the response will not be JSON.
             return None
         except TypeError:
             # in later Python 3.x versions, some calls return bytes objects.
