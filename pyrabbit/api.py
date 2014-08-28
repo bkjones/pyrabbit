@@ -133,7 +133,7 @@ class Client(object):
         :raises: HTTPError if *vhost* doesn't exist on the broker.
 
         """
-        uri = Client.urls['live_test'] % quote(vhost, '')
+        uri = Client.urls['live_test'] % vhost
 
         try:
             resp = self.http.do_call(uri, 'GET')

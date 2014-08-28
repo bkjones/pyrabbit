@@ -46,6 +46,10 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.purge_queues(['q1', 'q2']))
 
+    def test_get_queue(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.get_queue('', 'q1'))
+
     def test_get_all_exchanges(self):
         xchs = [{'name': 'foo', 'vhost': '/', 'type': 'direct',
                  'durable': False, 'auto_delete': False, 'internal': False,
