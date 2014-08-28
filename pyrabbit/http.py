@@ -3,7 +3,10 @@ import json
 import os
 import socket
 import httplib2
-from urlparse import urljoin
+try:
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urljoin
 
 class HTTPError(Exception):
     """
