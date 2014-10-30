@@ -53,19 +53,21 @@ class HTTPClient(object):
 
     """
 
-    def __init__(self, server, uname, passwd, timeout=5):
+    def __init__(self, server, uname, passwd, timeout=5, verbose=True):
         """
         :param string server: 'host:port' string denoting the location of the
             broker and the port for interfacing with its REST API.
         :param string uname: Username credential used to authenticate.
         :param string passwd: Password used to authenticate w/ REST API
         :param int timeout: Integer number of seconds to wait for each call.
+        :param bool verbose: Controls whether the actions are logged to stdout
 
         """
 
         self.client = httplib2.Http(timeout=timeout)
         self.client.add_credentials(uname, passwd)
         self.base_url = 'http://%s/api/' % server
+        self.verbose = verbose
 
     def decode_json_content(self, content):
         """
@@ -98,7 +100,8 @@ class HTTPClient(object):
 
         """
         url = urljoin(self.base_url, path)
-        print(url)
+        if self.verbose:
+            print(url)
         try:
             resp, content = self.client.request(url,
                                                 reqtype,

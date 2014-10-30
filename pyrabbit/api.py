@@ -94,11 +94,12 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd, timeout=5):
+    def __init__(self, host, user, passwd, timeout=5, verbose=True):
         """
         :param string host: string of the form 'host:port'
         :param string user: username used to authenticate to the API.
         :param string passwd: password used to authenticate to the API.
+        :param bool verbose: Controls whether the actions are logged to stdout
 
         Populates server attributes using passed-in parameters and
         the HTTP API's 'overview' information. It also instantiates
@@ -109,11 +110,14 @@ class Client(object):
         self.user = user
         self.passwd = passwd
         self.timeout = timeout
+        self.verbose = verbose
         self.http = http.HTTPClient(
             self.host,
             self.user,
             self.passwd,
-            self.timeout
+            self.timeout,
+            self.verbose
+
         )
 
         # initialize this now. @needs_admin_privs will check this first to
