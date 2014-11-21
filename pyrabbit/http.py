@@ -98,7 +98,6 @@ class HTTPClient(object):
 
         """
         url = urljoin(self.base_url, path)
-        print(url)
         try:
             resp, content = self.client.request(url,
                                                 reqtype,
