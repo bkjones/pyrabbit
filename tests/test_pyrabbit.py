@@ -28,9 +28,7 @@ class TestClient(unittest.TestCase):
     def test_server_is_alive_default_vhost(self):
         response = {'status': 'ok'}
         self.client.http.do_call = Mock(return_value=response)
-        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
-            mock_rights.__get__ = Mock(return_value=True)
-            self.assertTrue(self.client.is_alive())
+        self.assertTrue(self.client.is_alive())
 
     def test_get_vhosts_200(self):
         self.client.http.do_call = Mock(return_value=[])
@@ -76,14 +74,7 @@ class TestClient(unittest.TestCase):
         myexch = self.client.get_exchange('%2F', 'foo')
         self.assertEqual(myexch['name'], 'foo')
 
-    @patch.object(pyrabbit.api.Client, 'has_admin_rights')
-    def test_get_users_noprivs(self, has_rights):
-        has_rights.__get__ = Mock(return_value=False)
-        self.assertRaises(pyrabbit.api.PermissionError, self.client.get_users)
-
-    @patch.object(pyrabbit.api.Client, 'has_admin_rights')
-    def test_get_users_withprivs(self, has_rights):
-        has_rights.return_value = True
+    def test_get_users(self):
         with patch('pyrabbit.http.HTTPClient.do_call') as do_call:
             self.assertTrue(self.client.get_users())
 
@@ -196,28 +187,10 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.get_permission('vname', 'username'))
 
-    @patch.object(pyrabbit.api.Client, 'has_admin_rights')
-    def test_is_alive_withprivs(self, mock_rights):
-        mock_rights.__get__ = Mock(return_value=True)
+    def test_is_alive(self):
         with patch('pyrabbit.http.HTTPClient.do_call') as do_call:
             do_call.return_value = {'status': 'ok'}
             self.assertTrue(self.client.is_alive())
-
-    def test_is_alive_noprivs(self):
-        with patch.object(pyrabbit.api.Client, 'has_admin_rights') as mock_rights:
-            mock_rights.__get__ = Mock(return_value=False)
-            self.assertRaises(pyrabbit.api.PermissionError, self.client.is_alive)
-
-    def test_has_admin_rights(self):
-        response = {
-            'auth_backend': 'rabbit_auth_backend_internal',
-            'name': 'guest',
-            'tags': 'administrator',
-        }
-        self.client.get_whoami = Mock(return_value=response)
-        with patch.object(pyrabbit.api.Client, 'get_whoami') as mock_whoami:
-            mock_whoami.__get__ = Mock(return_value=True)
-            self.assertTrue(self.client.has_admin_rights)
 
 
 @unittest.skip
