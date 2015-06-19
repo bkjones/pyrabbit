@@ -1,2 +1,2 @@
 nose
-httplib2
+requests

@@ -94,23 +94,21 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd, timeout=5):
+    def __init__(self, api_url, user, passwd, timeout=5):
         """
-        :param string host: string of the form 'host:port'
+        :param string server: The base URL for the broker API.
         :param string user: username used to authenticate to the API.
         :param string passwd: password used to authenticate to the API.
 
         Populates server attributes using passed-in parameters and
-        the HTTP API's 'overview' information. It also instantiates
-        an httplib2 HTTP client and adds credentia    ls
-
+        the HTTP API's 'overview' information.
         """
-        self.host = host
+        self.api_url = api_url
         self.user = user
         self.passwd = passwd
         self.timeout = timeout
         self.http = http.HTTPClient(
-            self.host,
+            self.api_url,
             self.user,
             self.passwd,
             self.timeout

@@ -2,11 +2,13 @@
 import json
 import os
 import socket
-import httplib2
+import requests
+import requests.exceptions
+from requests.auth import HTTPBasicAuth
 try:
-    from urlparse import urljoin
+    from urlparse import urljoin, urlparse, urlunparse
 except ImportError:
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse, urlunparse
 
 class HTTPError(Exception):
     """
@@ -47,49 +49,33 @@ class NetworkError(Exception):
 
 class HTTPClient(object):
     """
-    A wrapper for (currently) httplib2. Abstracts away
+    A wrapper for requests. Abstracts away
     things like path building, return value parsing, etc.,
     so the api module code stays clean and easy to read/use.
 
     """
 
-    def __init__(self, server, uname, passwd, timeout=5):
+    def __init__(self, api_url, uname, passwd, timeout=5):
         """
-        :param string server: 'host:port' string denoting the location of the
-            broker and the port for interfacing with its REST API.
+        :param string api_url: The base URL for the broker API.
         :param string uname: Username credential used to authenticate.
         :param string passwd: Password used to authenticate w/ REST API
         :param int timeout: Integer number of seconds to wait for each call.
 
         """
+        self.auth = HTTPBasicAuth(uname, passwd)
+        self.timeout = timeout
+        # Need to add http:// if not specified for urlparse to work
+        if not api_url.startswith('http'):
+            api_url = 'http://%s' % api_url
+        self.base_url = api_url
 
-        self.client = httplib2.Http(timeout=timeout)
-        self.client.add_credentials(uname, passwd)
-        self.base_url = 'http://%s/api/' % server
-
-    def decode_json_content(self, content):
-        """
-        Returns the JSON-decoded Python representation of 'content'.
-
-        :param json content: A Python JSON object.
-
-        """
-        try:
-            py_ct = json.loads(content)
-        except ValueError as out:
-            # If there's a 404 or other error, the response will not be JSON.
-            return None
-        except TypeError:
-            # in later Python 3.x versions, some calls return bytes objects.
-            py_ct = json.loads(content.decode())
-        return py_ct
-
-    def do_call(self, path, reqtype, body=None, headers=None):
+    def do_call(self, path, method, body=None, headers=None):
         """
         Send an HTTP request to the REST API.
 
         :param string path: A URL
-        :param string reqtype: The HTTP method (GET, POST, etc.) to use
+        :param string method: The HTTP method (GET, POST, etc.) to use
             in the request.
         :param string body: A string representing any data to be sent in the
             body of the HTTP request.
@@ -98,25 +84,23 @@ class HTTPClient(object):
 
         """
         url = urljoin(self.base_url, path)
-        print(url)
         try:
-            resp, content = self.client.request(url,
-                                                reqtype,
-                                                body,
-                                                headers)
-        except socket.timeout as out:
-            raise NetworkError("Timout while trying to connect to RabbitMQ")
-        except Exception as out:
-            # net-related exception types from httplib2 are unpredictable.
-            raise NetworkError("Error: %s %s" % (type(out), out))
+            resp = requests.request(method, url, data=body, headers=headers,
+                                    auth=self.auth, timeout=self.timeout)
+        except requests.exceptions.Timeout as out:
+            raise NetworkError("Timeout while trying to connect to RabbitMQ")
+        except requests.exceptions.RequestException as err:
+            # All other requests exceptions inherit from RequestException
+            raise NetworkError("Error during request %s %s" % (type(err), err))
 
-        # RabbitMQ will return content even on certain failures.
-        if content:
-            content = self.decode_json_content(content)
+        try:
+            content = resp.json()
+        except ValueError as out:
+            content = None
 
         # 'success' HTTP status codes are 200-206
-        if resp.status < 200 or resp.status > 206:
-            raise HTTPError(content, resp.status, resp.reason, path, body)
+        if resp.status_code < 200 or resp.status_code > 206:
+            raise HTTPError(content, resp.status_code, resp.text, path, body)
         else:
             if content:
                 return content
