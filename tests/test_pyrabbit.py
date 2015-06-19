@@ -105,7 +105,7 @@ class TestClient(unittest.TestCase):
 
         with patch('requests.request') as req:
             resp = requests.Response()
-            resp._content = json_q
+            resp._content = json_q.encode()
             resp.status_code = 200
             req.return_value = resp
             depth = self.client.get_queue_depth('/', 'test')
