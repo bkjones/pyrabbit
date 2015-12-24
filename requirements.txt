@@ -1,4 +1,4 @@
 nose
-httplib2
+requests
 mock
 unittest2

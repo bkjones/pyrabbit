@@ -8,10 +8,10 @@ from . import http
 import functools
 import json
 try:
-    #python 2.x
+    # python 2.x
     from urllib import quote
 except ImportError:
-    #python 3.x
+    # python 3.x
     from urllib.parse import quote
 
 
@@ -73,25 +73,24 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd, timeout=5, scheme='http'):
+    def __init__(self, api_url, user, passwd, timeout=5, scheme='http'):
         """
-        :param string host: String of the form 'host:port'
+        :param string api_url: base url for the broker API
         :param string user: Username used to authenticate to the API.
         :param string passwd: Password used to authenticate to the API.
         :param int timeout: Integer number of seconds to wait for each call.
+        :param string scheme: HTTP scheme used to make the connection
 
         Populates server attributes using passed-in parameters and
-        the HTTP API's 'overview' information. It also instantiates
-        an httplib2 HTTP client and adds credentia    ls
-
+        the HTTP API's 'overview' information.
         """
-        self.host = host
+        self.api_url = api_url
         self.user = user
         self.passwd = passwd
         self.timeout = timeout
         self.scheme = scheme
         self.http = http.HTTPClient(
-            self.host,
+            self.api_url,
             self.user,
             self.passwd,
             self.timeout,

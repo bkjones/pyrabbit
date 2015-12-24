@@ -10,20 +10,21 @@ except ImportError:
     import unittest
 
 import sys
+import requests
 sys.path.append('..')
 import pyrabbit
 from mock import Mock, patch
 
 class TestClient(unittest.TestCase):
     def setUp(self):
-        self.client = pyrabbit.api.Client('localhost:55672', 'guest', 'guest')
+        self.client = pyrabbit.api.Client('localhost:55672/api', 'guest', 'guest')
 
     def tearDown(self):
         del self.client
 
     def test_server_init_200(self):
         self.assertIsInstance(self.client, pyrabbit.api.Client)
-        self.assertEqual(self.client.host, 'localhost:55672')
+        self.assertEqual(self.client.api_url, 'localhost:55672/api')
 
     def test_server_is_alive_default_vhost(self):
         response = {'status': 'ok'}
@@ -93,12 +94,14 @@ class TestClient(unittest.TestCase):
         q = {'messages': 8}
         json_q = json.dumps(q)
 
-        with patch('httplib2.Response') as resp:
-            resp.reason = 'response reason here'
-            resp.status = 200
-            self.client.http.client.request = Mock(return_value=(resp, json_q))
+        with patch('requests.request') as req:
+            resp = requests.Response()
+            resp._content = json_q.encode()
+            resp.status_code = 200
+            req.return_value = resp
             depth = self.client.get_queue_depth('/', 'test')
             self.assertEqual(depth, q['messages'])
+
 
     def test_purge_queue(self):
         self.client.http.do_call = Mock(return_value=True)

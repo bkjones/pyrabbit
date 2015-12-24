@@ -32,7 +32,7 @@ great w/ Python 3!
 Here's a quick demo::
 
     >>> from pyrabbit.api import Client
-    >>> cl = Client('localhost:55672', 'guest', 'guest')
+    >>> cl = Client('http://localhost:55672/api', 'guest', 'guest')
     >>> cl.is_alive()
     True
     >>> cl.create_vhost('example_vhost')
