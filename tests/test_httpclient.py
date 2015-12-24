@@ -26,15 +26,13 @@ class TestHTTPClient(unittest.TestCase):
         self.assertIsInstance(c, http.HTTPClient)
 
     def test_client_init_sets_credentials(self):
-        domain = ''
-        expected_credentials = [(domain, self.testuser, self.testpass)]
-        self.assertEqual(
-            self.c.client.credentials.credentials, expected_credentials)
+        self.assertEqual(self.c.auth.username, self.testuser)
+        self.assertEqual(self.c.auth.password, self.testpass)
 
     def test_client_init_sets_default_timeout(self):
-        self.assertEqual(self.c.client.timeout, 5)
+        self.assertEqual(self.c.timeout, 5)
 
     def test_client_init_with_timeout(self):
         c = http.HTTPClient(self.testhost, self.testuser, self.testpass, 1)
-        self.assertEqual(c.client.timeout, 1)
+        self.assertEqual(c.timeout, 1)
 
