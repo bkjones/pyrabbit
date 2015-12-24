@@ -75,9 +75,10 @@ class Client(object):
 
     def __init__(self, host, user, passwd, timeout=5):
         """
-        :param string host: string of the form 'host:port'
-        :param string user: username used to authenticate to the API.
-        :param string passwd: password used to authenticate to the API.
+        :param string host: String of the form 'host:port'
+        :param string user: Username used to authenticate to the API.
+        :param string passwd: Password used to authenticate to the API.
+        :param int timeout: Integer number of seconds to wait for each call.
 
         Populates server attributes using passed-in parameters and
         the HTTP API's 'overview' information. It also instantiates
@@ -266,7 +267,6 @@ class Client(object):
         :returns: list of dicts, or an empty list if there are no permissions.
 
         :param string vname: Name of the vhost to set perms on.
-        :param string username: User to set permissions for.
         """
         vname = quote(vname, '')
         path = Client.urls['vhost_permissions_get'] % (vname,)
@@ -277,7 +277,6 @@ class Client(object):
         """
         :returns: list of dicts, or an empty list if there are no permissions.
 
-        :param string vname: Name of the vhost to set perms on.
         :param string username: User to set permissions for.
         """
 
