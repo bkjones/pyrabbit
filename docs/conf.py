@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyRabbit'
-copyright = u'2011, Brian K. Jones'
+copyright = u'2011-2015, Brian K. Jones'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
