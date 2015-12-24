@@ -534,12 +534,10 @@ class Client(object):
             queues = self._call(path, 'GET')
             for queue in queues:
                 depth = queue['messages']
-                print("\t%s: %s" % (queue, depth))
         else:
             # get the named queues only.
             for name in names:
                 depth = self.get_queue_depth(vhost, name)
-                print("\t%s: %s" % (name, depth))
 
     def purge_queues(self, queues):
         """
