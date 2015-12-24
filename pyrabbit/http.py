@@ -104,7 +104,7 @@ class HTTPClient(object):
                                                 body,
                                                 headers)
         except socket.timeout as out:
-            raise NetworkError("Timout while trying to connect to RabbitMQ")
+            raise NetworkError("Timeout while trying to connect to RabbitMQ")
         except Exception as out:
             # net-related exception types from httplib2 are unpredictable.
             raise NetworkError("Error: %s %s" % (type(out), out))
