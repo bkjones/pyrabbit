@@ -73,7 +73,7 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, host, user, passwd, timeout=5):
+    def __init__(self, host, user, passwd, timeout=5, scheme='http'):
         """
         :param string host: String of the form 'host:port'
         :param string user: Username used to authenticate to the API.
@@ -89,11 +89,13 @@ class Client(object):
         self.user = user
         self.passwd = passwd
         self.timeout = timeout
+        self.scheme = scheme
         self.http = http.HTTPClient(
             self.host,
             self.user,
             self.passwd,
-            self.timeout
+            self.timeout,
+            self.scheme
         )
 
         return
