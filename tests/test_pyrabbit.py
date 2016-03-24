@@ -8,12 +8,16 @@ try:
 except ImportError:
     #python 3.x
     import unittest
+try:
+    from mock import Mock, patch
+except ImportError:
+    from unittest.mock import Mock, patch
 
 import sys
 import requests
 sys.path.append('..')
 import pyrabbit
-from mock import Mock, patch
+
 
 class TestClient(unittest.TestCase):
     def setUp(self):
