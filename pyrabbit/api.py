@@ -48,6 +48,9 @@ class Client(object):
             'all_users': 'users',
             'all_permissions': 'permissions',
             'all_bindings': 'bindings',
+            'nodes_by_name_memory': 'nodes/%s?memory=true',
+            'nodes_by_name_binary': 'nodes/%s?binary=true',
+            'nodes_by_name': 'nodes/%s',
             'whoami': 'whoami',
             'queues_by_vhost': 'queues/%s',
             'queues_by_name': 'queues/%s/%s',
@@ -178,6 +181,31 @@ class Client(object):
         """
         nodes = self._call(Client.urls['all_nodes'], 'GET')
         return nodes
+
+
+    def get_node(self, nodename, opt=None):
+        """
+        Get a single node, which requires nodename and optional memory or binary for memory statistic.
+
+        :param string nodename: An individual node in the RabbitMQ cluster (even if there is no cluster).
+        :param string opt: memory or binary.
+            memory - to get memory statistics (it adds to the URL "?memory=true")
+            binary - to get a breakdown of binary memory use  (it adds to the URL "?binary=true")
+        :returns: A dictionary of queue properties.
+        :rtype: dict
+
+        """
+        nodename = quote(nodename, '')
+        if opt == 'memory':
+            path = Client.urls['nodes_by_name_memory'] % (nodename)
+        elif opt == 'binary':
+            path = Client.urls['nodes_by_name_binary'] % (nodename)
+        else:
+            path = Client.urls['nodes_by_name'] % (nodename)
+
+        queue = self.http.do_call(path, 'GET')
+        return queue
+        
 
     def get_users(self):
         """
