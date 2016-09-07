@@ -203,8 +203,8 @@ class Client(object):
         else:
             path = Client.urls['nodes_by_name'] % (nodename)
 
-        queue = self.http.do_call(path, 'GET')
-        return queue
+        node = self.http.do_call(path, 'GET')
+        return node
         
 
     def get_users(self):
