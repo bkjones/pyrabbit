@@ -166,6 +166,10 @@ class TestClient(unittest.TestCase):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.create_user('user', 'password'))
 
+    def test_change_password(self):
+        self.client.http.do_call = Mock(return_value=True)
+        self.assertTrue(self.client.change_password('user', 'password22'))
+
     def test_delete_user(self):
         self.client.http.do_call = Mock(return_value=True)
         self.assertTrue(self.client.delete_user('user'))

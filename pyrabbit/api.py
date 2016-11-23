@@ -791,6 +791,17 @@ class Client(object):
         return self._call(path, 'PUT', body=body,
                                  headers=Client.json_headers)
 
+    def change_password(self, username, password, tags=""):
+        """
+        Changes the password for a user.
+
+        :param string username: The name of the user whose password is to be changed.
+        :param string password: The new password for the user.
+        :param string tags: Comma-separated list of tags for the user
+        :returns: boolean
+        """
+        return self.create_user(username, password, tags)
+
     def delete_user(self, username):
         """
         Deletes a user from the server.
