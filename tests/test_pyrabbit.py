@@ -15,6 +15,7 @@ sys.path.append('..')
 import pyrabbit
 from mock import Mock, patch
 
+
 class TestClient(unittest.TestCase):
     def setUp(self):
         self.client = pyrabbit.api.Client('localhost:55672/api', 'guest', 'guest')
@@ -78,6 +79,10 @@ class TestClient(unittest.TestCase):
     def test_get_users(self):
         with patch('pyrabbit.http.HTTPClient.do_call') as do_call:
             self.assertTrue(self.client.get_users())
+    
+    def test_get_definitions(self):
+        with patch('pyrabbit.http.HTTPClient.do_call') as do_call:
+            self.assertTrue(self.client.get_definitions())
 
     def test_get_queue_depth(self):
         q = {'messages': 4}

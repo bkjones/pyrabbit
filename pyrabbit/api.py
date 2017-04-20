@@ -68,8 +68,8 @@ class Client(object):
             'vhost_permissions': 'permissions/%s/%s',
             'users_by_name': 'users/%s',
             'user_permissions': 'users/%s/permissions',
-            'vhost_permissions_get': 'vhosts/%s/permissions'
-            }
+            'vhost_permissions_get': 'vhosts/%s/permissions',
+            'definitions': 'definitions'}
 
     json_headers = {"content-type": "application/json"}
 
@@ -799,3 +799,23 @@ class Client(object):
         """
         path = Client.urls['users_by_name'] % username
         return self._call(path, 'DELETE')
+
+
+    def get_definitions(self):
+        """
+        Get definitions
+        """
+        path = Client.urls['definitions']
+        definitions = self.http.do_call(path, 'GET')
+        return definitions
+
+
+    def set_definitions(self, definitions):
+        """
+        Set definitions
+        """
+        body = json.dumps(definitions)
+        path = Client.urls['definitions']
+        definitions = self.http.do_call(path, 'POST', body,
+                                     headers=Client.json_headers)
+        return definitions
