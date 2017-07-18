@@ -4,3 +4,4 @@ If you've contributed, let it be known!
 - @spil-sean
 - @davidszotten
 - @inviscid
+- @deslum
