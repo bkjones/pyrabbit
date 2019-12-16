@@ -628,9 +628,11 @@ class Client(object):
         :returns: list of dicts. messages[msg-index]['payload'] will contain
                 the message body.
         """
-
+        ackmode = 'ack_requeue_false'
+        if requeue:
+            ackmode = 'ack_requeue_true'
         vhost = quote(vhost, '')
-        base_body = {'count': count, 'requeue': requeue, 'encoding': encoding}
+        base_body = {'count': count, 'ackmode': ackmode, 'encoding': encoding}
         if truncate:
             base_body['truncate'] = truncate
         body = json.dumps(base_body)
